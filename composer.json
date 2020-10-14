@@ -1,0 +1,18 @@
+{
+    "name": "xjryanse/logic",
+    "description": "common logic",
+    "type": "library",
+    "authors": [
+        {
+            "name": "xjryanse",
+            "email": "xjryanse@sina.com"
+        }
+    ],
+    "require": {},
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "xjryanse\\logic\\": "src/"
+        }
+    }	
+}
