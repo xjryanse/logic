@@ -15,7 +15,8 @@
             "xjryanse\\logic\\": "src/"
         },
         "files": [
-            "src/functions.php"
+            "helper/consts.php",
+            "helper/functions.php"
         ]
     }	
 }
