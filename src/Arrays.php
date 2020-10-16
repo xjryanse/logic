@@ -7,6 +7,14 @@ namespace xjryanse\logic;
 class Arrays
 {
     /**
+     * 数组取值
+     */
+    public static function value( array $array , string $key,$default='' )
+    {
+        return isset($array[ $key ]) ? $array[ $key ] : $default;
+    }
+    
+    /**
      * 数组指定键取值
      * @param type $array   数据数组
      * @param type $keys    键值数组
