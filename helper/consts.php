@@ -11,3 +11,12 @@ const AUDIT_TODO    = 0;//待审核
 const AUDIT_PASS    = 1;//审核通过
 const AUDIT_REJECT  = 2;//审核拒绝
 
+/**
+ * 事件处理的常量
+ */
+const XJRYANSE_OP_TODO      = 'todo';   //待处理
+const XJRYANSE_OP_DOING     = 'doing';  //进行中
+const XJRYANSE_OP_FINISH    = 'finish'; //已完成
+const XJRYANSE_OP_CLOSE     = 'close';  //已关闭
+
+
