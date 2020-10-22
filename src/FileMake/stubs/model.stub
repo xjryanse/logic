@@ -1,0 +1,11 @@
+<?php
+namespace app\{%module%}\model;
+
+/**
+ * {%modelDesc%}
+ */
+class {%modelName%} extends Base
+{
+    
+
+}
