@@ -1,9 +1,9 @@
 <?php
 namespace xjryanse\logic;
 
-use app\filemake\logic\make\Model;
-use app\filemake\logic\make\ModelBase;
-use app\filemake\logic\make\Service;
+use xjryanse\logic\FileMake\logic\make\Model;
+use xjryanse\logic\FileMake\logic\make\ModelBase;
+use xjryanse\logic\FileMake\logic\make\Service;
 use Exception;
 use think\Db;
 /**
