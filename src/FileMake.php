@@ -4,8 +4,8 @@ namespace xjryanse\logic;
 use xjryanse\logic\FileMake\logic\make\Model;
 use xjryanse\logic\FileMake\logic\make\ModelBase;
 use xjryanse\logic\FileMake\logic\make\Service;
+use xjryanse\logic\DbOperate;
 use Exception;
-use think\Db;
 /**
  * 生成文件
  */
@@ -24,7 +24,7 @@ class FileMake
             throw new Exception('不支持该数据表前缀');
         }
         
-        if(!self::isTableExist( $tableName )){
+        if(!DbOperate::isTableExist( $tableName )){
             throw new Exception('数据表不存在');
         }
 
@@ -44,16 +44,4 @@ class FileMake
         $res['service']     = (new Service())->generate( $module, $modelName, $modelDesc);
         return json($res);
     }
-    /**
-     * 判断数据表是否存在
-     * @return type
-     */
-    private static function isTableExist( $tableName )
-    {
-        //判断数据表是否存在
-        $exist = Db::cache(60)->query("show tables like '". $tableName ."'");
-        return $exist;
-    }
-    
-
 }
