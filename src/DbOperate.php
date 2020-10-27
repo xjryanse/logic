@@ -41,4 +41,12 @@ class DbOperate
         }
         return $str;
     }
+    /**
+     * 当前表末条id
+     * @param type $tableName
+     */
+    public static function lastId( $tableName ,$con = []) 
+    {
+        return Db::table( $tableName )->where( $con )->order('id desc')->value('id');
+    }
 }
