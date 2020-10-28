@@ -99,4 +99,26 @@ class Arrays
         }
         return $data;
     }    
+    /**
+     * 值查找键，返回包含该值的全部键名
+     * @param type $array   数组
+     * @param type $value   值
+     * @return type
+     */
+    public static function valueKeys(array $array, $value)
+    {
+        if(!$value){
+            return array_keys($array);
+        }
+        $arrayKeys = [];
+        foreach( $array as $k=>$v){
+            if( !is_array($v) && $v == $value ){
+                $arrayKeys[] = $k;
+            }
+            if( is_array($v) && in_array( $value, $v ) ){
+                $arrayKeys[] = $k;
+            }
+        }
+        return $arrayKeys;
+    }    
 }
