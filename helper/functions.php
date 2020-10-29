@@ -166,3 +166,38 @@ if(!function_exists('numberToBoolean')){
         return $value ? true : false;
     }
 }
+/*
+ * 城市拆分
+ */
+if(!function_exists('cityExplode')){
+    /**
+     * 城市拆分
+     * @param type $string       字符串
+     * @param type $keys        键列表
+     * @param type $delimiter       分隔符
+     * @return type
+     */
+    function cityExplode( $string, $keys = ["province","city","county"], $delimiter=" " ) {
+        $values = explode( $delimiter, $string );
+        return array_combine($keys, $values);
+    }
+}
+/*
+ * 城市聚合
+ */
+if(!function_exists('cityImplode') ){
+    /**
+     * 城市聚合
+     * @param type $data       数组
+     * @param type $keys        键列表
+     * @param type $delimiter       分隔符
+     * @return type
+     */
+    function cityImplode( array $data, $keys = ["province","city","county"], $delimiter=" " ) {
+        $res = [];
+        foreach ($keys as $key){
+            $res[] = $data[ $key ];
+        }
+        return implode( $delimiter, $res );
+    }
+}
