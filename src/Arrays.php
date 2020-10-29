@@ -95,7 +95,10 @@ class Arrays
             //数据存在，数据是数组，待取的键存在
             if(isset($data[$v]) && is_array($data[$v]) && isset( $data[$v][$key] ) ){
                 $data[$v] = $data[$v][$key];
-            } 
+            } else {
+                //没有该字段，数据置空
+                $data[$v] = '';
+            }
         }
         return $data;
     }    
