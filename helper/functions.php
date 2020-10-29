@@ -129,8 +129,7 @@ if(!function_exists('camelize')){
 　　* step1.原字符串转小写,原字符串中的分隔符用空格替换,在字符串开头加上分隔符
 　　* step2.将字符串中每个单词的首字母转换为大写,再去空格,去字符串首部附加的分隔符.
 　　*/
-    function camelize($uncamelized_words,$separator='_')
-    {
+    function camelize($uncamelized_words,$separator='_'){
         $uncamelized_words = $separator. str_replace($separator, " ", strtolower($uncamelized_words));
         return ltrim(str_replace(" ", "", ucwords($uncamelized_words)), $separator );
     }
@@ -145,8 +144,25 @@ if(!function_exists('uncamelize')){
      * @param type $separator
      * @return type
      */
-    function uncamelize($camelCaps,$separator='_')
-    {
+    function uncamelize($camelCaps,$separator='_'){
         return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
+    }
+}
+
+/**
+ * 布尔值转01
+ */
+if(!function_exists('booleanToNumber')){
+    function booleanToNumber( $value )
+    {
+        return $value === true || $value == 'true' ? 1 : 0;
+    }
+}
+/**
+ * 01转布尔值
+ */
+if(!function_exists('numberToBoolean')){
+    function numberToBoolean( $value ) {
+        return $value ? true : false;
     }
 }
