@@ -15,7 +15,7 @@ class ParamInherit
         $defaultArr     = ['admKey','comKey','pCompanyId'];
         $requestParams  = Request::only( array_merge( $params, $defaultArr ) );
         //comKey：参数优先
-        $res = array_merge(['comKey'=>session('scopeCompanyKey')],$requestParams);
+        $res = array_merge(['comKey'=>session(SESSION_COMPANY_KEY)],$requestParams);
         return $res;
     }
 }
