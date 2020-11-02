@@ -27,6 +27,7 @@ const SESSION_APP_ID        =   'scopeAppId';           //全局APPID
 const SESSION_COMPANY_ID    =   'scopeCompanyId';       //全局公司id
 const SESSION_COMPANY_KEY   =   'scopeCompanyKey';      //全局公司key
 const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
+const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 
 
 
