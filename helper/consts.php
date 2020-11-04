@@ -29,7 +29,15 @@ const SESSION_COMPANY_KEY   =   'scopeCompanyKey';      //全局公司key
 const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 
-
+//框架字段类型:FR_框架
+const FR_COL_TYPE_EMPTY         = 'empty';  //空
+const FR_COL_TYPE_HIDDEN        = 'hidden'; //隐藏域
+const FR_COL_TYPE_TEXT          = 'text';   //文本
+const FR_COL_TYPE_SWITCH        = 'switch';
+const FR_COL_TYPE_MULTISELECT   = 'multiSelect';
+const FR_COL_TYPE_CITYPICKER    = 'citypicker';
+const FR_COL_TYPE_UPLIMAGE      = 'uplimage';
+const FR_COL_TYPE_DATE          = 'date';
 
 
 
