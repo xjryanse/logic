@@ -30,15 +30,18 @@ const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 
 //框架字段类型:FR_框架
-const FR_COL_TYPE_EMPTY         = 'empty';  //空
-const FR_COL_TYPE_HIDDEN        = 'hidden'; //隐藏域
-const FR_COL_TYPE_TEXT          = 'text';   //文本
-const FR_COL_TYPE_SWITCH        = 'switch';
-const FR_COL_TYPE_MULTISELECT   = 'multiSelect';
-const FR_COL_TYPE_CITYPICKER    = 'citypicker';
-const FR_COL_TYPE_UPLIMAGE      = 'uplimage';
-const FR_COL_TYPE_DATE          = 'date';
-
-
-
+const FR_COL_TYPE_EMPTY         = 'empty';      //空
+const FR_COL_TYPE_HIDDEN        = 'hidden';     //隐藏域
+const FR_COL_TYPE_TEXT          = 'text';       //文本
+const FR_COL_TYPE_TEXTAREA      = 'textarea';   //文本框
+const FR_COL_TYPE_CHECK         = 'check';      //勾选
+const FR_COL_TYPE_ENUM          = 'enum';       //枚举
+const FR_COL_TYPE_DYNENUM       = 'dynenum';    //动态枚举
+const FR_COL_TYPE_DYNTREE       = 'dyntree';    //动态树
+const FR_COL_TYPE_SWITCH        = 'switch';     //开关
+const FR_COL_TYPE_MULTISELECT   = 'multiSelect';//复选框
+const FR_COL_TYPE_CITYPICKER    = 'citypicker'; //省市县选择器
+const FR_COL_TYPE_UPLIMAGE      = 'uplimage';   //上传图片
+const FR_COL_TYPE_DATE          = 'date';       //日期
+const FR_COL_TYPE_EDITOR        = 'editor';     //编辑器
 
