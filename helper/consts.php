@@ -46,3 +46,24 @@ const FR_COL_TYPE_UPLIMAGE      = 'uplimage';   //上传图片
 const FR_COL_TYPE_DATE          = 'date';       //日期
 const FR_COL_TYPE_EDITOR        = 'editor';     //编辑器
 
+//框架关联option字段的含义
+const FR_OPT_TABLE_NAME         = 'table_name'; //关联表名
+const FR_OPT_PID                = 'pid';        //关联表指示父id的字段名（用于树状）
+const FR_OPT_KEY                = 'key';        //关联表键字段
+const FR_OPT_VALUE              = 'value';      //关联表值字段
+    //写入表
+const FR_OPT_TO_TABLE           = 'to_table';       //【写入表】数据写入表名
+const FR_OPT_TO_FIELD           = 'to_field';       //【写入表】数据写入字段名
+const FR_OPT_MAIN_FIELD         = 'main_field';     //【写入表】关联主表id的字段名
+    //模板表
+const FR_OPT_TPL_TABLE          = 'tpl_table';      //模板表名
+const FR_OPT_TPL_MAIN_KEY       = 'tpl_main_key';   //模板主列key
+const FR_OPT_TPL_GROUP_KEY      = 'tpl_group_key';  //模板分组key
+const FR_OPT_TPL_DATA_KEY       = 'tpl_data_key';   //模板数据key，用于和数据表的key匹配;
+    //写入表额外
+const FR_OPT_MAIN_FIELD         = 'main_data_key';     //【写入表】关联主表id的字段名
+
+#tpl_table=temp_goods_prize_key&tpl_main_key=main_key&tpl_group_key=belong_role&tpl_data_key=prize_key&to_table=ydzb_goods_prize&to_field=prize&main_field=goods_id&main_data_key=prize_key
+
+#table_name=ydzb_user_auth_access&key=id&value=name&to_table=ydzb_user_auth_role_access&pid=pid&to_field=access_id&main_field=role_id
+
