@@ -61,7 +61,7 @@ const FR_OPT_TPL_MAIN_KEY       = 'tpl_main_key';   //模板主列key
 const FR_OPT_TPL_GROUP_KEY      = 'tpl_group_key';  //模板分组key
 const FR_OPT_TPL_DATA_KEY       = 'tpl_data_key';   //模板数据key，用于和数据表的key匹配;
     //写入表额外
-const FR_OPT_MAIN_FIELD         = 'main_data_key';     //【写入表】关联主表id的字段名
+const FR_OPT_MAIN_DATA_KEY      = 'main_data_key';     //【写入表】关联主表id的字段名
 
 #tpl_table=temp_goods_prize_key&tpl_main_key=main_key&tpl_group_key=belong_role&tpl_data_key=prize_key&to_table=ydzb_goods_prize&to_field=prize&main_field=goods_id&main_data_key=prize_key
 
