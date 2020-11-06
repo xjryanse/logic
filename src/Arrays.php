@@ -2,7 +2,7 @@
 namespace xjryanse\logic;
 
 /**
- * 数组处理逻辑
+ * 一维数组处理逻辑
  */
 class Arrays
 {
@@ -22,62 +22,22 @@ class Arrays
      */
     public static function getByKeys(array $array,array $keys )
     {
-        $tmpArr = [];
-        foreach( $keys as $v){
-            if(isset($array[$v])){
-                $tmpArr[$v] = $array[$v];
-            }
-        }
-        return $tmpArr;
+        $match = array_fill_keys($keys, "");
+        //比较两个（或更多个）数组的键名 ，并返回交集。
+        return array_intersect_key( $array , $match);
     }
-
     /**
-     * 二维数组矩阵转置
+     * 一维数组键名替换
+     * @param array $data =  ['key1'=>'value1','key2'=>'value2','key3'=>'value3'];
+     * @param array $keys =  ['key1'=>'res1','key3'=>'res3','key4'=>'res4'];
+     * @return type          ['res1'=>'value1','res3'=>'value3'];
      */
-    public static function transpose( array $data ) {
-        $myData = array_values($data);
-        if(!is_array($myData[0])){
-            return false;
-        }
-        $keys = array_keys( $myData[0] );
-        foreach($keys as &$v){
-            $tmp    = array_merge( [$v],array_column($myData, $v) );
-            $resData[]  = $tmp;
-        }
-        return $resData;
+    public static function keyReplace( array $data, array $keys )
+    {
+        $values     = array_intersect_key($data, $keys);
+        $repKeys    = array_intersect_key($keys, $values);
+        return array_combine($repKeys, $values);
     }
-    
-    /**
-    * 二维数组首行转键
-    */
-    public static function shiftToKey( array $data ) {
-        $first = array_shift($data);
-        $resData = [];
-        foreach( $data as $k=>$v){
-            $tmpData = [];
-            foreach($first as $kk=>$kv){
-                $tmpData[ $kv ] = $v[ $kk ];
-            }
-            $resData[] = $tmpData;
-        }
-        return $resData;
-    }    
-    
-    /**
-     * 二维数组键名替换
-     */
-    public static function keyReplace( array $data, array $keys ) {
-        $resData = [];
-        foreach( $data as $k=>$v){
-            foreach($keys as $kk=>$kv){
-                if(isset($v[$kk])){
-                    $resData[$k][$kv] = $v[$kk];
-                }
-            }
-        }
-
-        return $resData;
-    }    
     
     /**
      * 去除多余参数，只保留id
