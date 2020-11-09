@@ -201,3 +201,67 @@ if(!function_exists('cityImplode') ){
         return implode( $delimiter, $res );
     }
 }
+
+
+/**
+ * 包含模块标记文件
+ * @param type $name
+ */
+if (!function_exists('include_html')) {
+    function include_html($module, $name)
+    {
+        include_block_file($module, $name);
+    }
+}
+/**
+ * 包含模块js文件
+ * @param type $name
+ */
+if (!function_exists('include_js')) {
+    function include_js($module, $name)
+    {
+        include_block_file($module, $name, 'js');
+    }
+}
+/**
+ * 包含模块文件
+ */
+if (!function_exists('include_block_file')) {
+    function include_block_file($module, $name, $suffix = 'html')
+    {
+        if (is_array($name)) {
+            foreach ($name as &$v) {
+//                $filename      = '../application/' . $module . '/view/_block/' . $v . '/' . $v . '.' . $suffix;
+                $filename      = '../application/' . $module . '/view/xjryanse/common/' . $v . '/' . $v . '.' . $suffix;
+                $filename_comm = '../application/common/view/_block/' . $v . '/' . $v . '.' . $suffix;
+                if (file_exists($filename)) {
+                    include $filename;
+                } else if (file_exists($filename_comm)) {
+                    include $filename_comm;
+                }
+            }
+        } else {
+//            $filename      = '../application/' . $module . '/view/_block/' . $name . '/' . $name . '.' . $suffix;
+            $filename      = '../application/' . $module . '/view/xjryanse/common/' . $name . '/' . $name . '.' . $suffix;
+            $filename_comm = '../application/common/view/_block/' . $name . '/' . $name . '.' . $suffix;
+            if (file_exists($filename)) {
+                include $filename;
+            } else if (file_exists($filename_comm)) {
+                include $filename_comm;
+            }
+        }
+    }
+}
+
+/*
+ * app的加密密钥传输
+ */
+if(!function_exists('appEncrypt')){
+    function appEncrypt( $appid, $secret, $timestamp){
+        $tmpArr         = array($appid, $secret, $timestamp);
+        sort($tmpArr, SORT_STRING);
+        $tmpStr         = implode( $tmpArr );
+        $myEncrypt      = sha1( $tmpStr );
+        return $myEncrypt;
+    }
+}
