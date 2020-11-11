@@ -35,7 +35,10 @@ class Arrays
     public static function keyReplace( array $data, array $keys )
     {
         $values     = array_intersect_key($data, $keys);
+        ksort($values);
         $repKeys    = array_intersect_key($keys, $values);
+        ksort($repKeys);
+        
         return array_combine($repKeys, $values);
     }
     
