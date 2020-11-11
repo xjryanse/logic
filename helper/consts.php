@@ -4,6 +4,13 @@
  * 【公共常量】
  */
 
+const RES_CODE_SUCCESS          = 0;    //请求成功返回码；
+const RES_CODE_ERROR            = 1;    //请求失败返回码；
+const RES_CODE_NOTOKEN          = 1000; //缺少访问凭据；
+const RES_CODE_INVALID_TOKEN    = 1001; //无效访问凭据；
+const RES_CODE_NO_LOGIN         = 1003; //用户未登录；
+const RES_CODE_NO_INFO          = 1004; //用户未完善信息；
+
 /**
  * 审核状态的常量
  */
