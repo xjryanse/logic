@@ -52,6 +52,8 @@ const FR_COL_TYPE_CITYPICKER    = 'citypicker'; //省市县选择器
 const FR_COL_TYPE_UPLIMAGE      = 'uplimage';   //上传图片
 const FR_COL_TYPE_DATE          = 'date';       //日期
 const FR_COL_TYPE_EDITOR        = 'editor';     //编辑器
+const FR_COL_TYPE_PHONE         = 'phone';      //输入手机号码
+const FR_COL_TYPE_IDNO          = 'idno';       //输入身份证号码
 
 //框架关联option字段的含义
 const FR_OPT_TABLE_NAME         = 'table_name'; //关联表名
