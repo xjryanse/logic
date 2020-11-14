@@ -48,6 +48,7 @@ const FR_COL_TYPE_DYNTREE       = 'dyntree';    //动态树
 const FR_COL_TYPE_TPLSET        = 'tplset';     //可根据模板来进行分组设定值：主要用于：价格设定
 const FR_COL_TYPE_SWITCH        = 'switch';     //开关
 const FR_COL_TYPE_MULTISELECT   = 'multiSelect';//复选框
+const FR_COL_TYPE_SINGLESELECT  = 'singleSelect';//单选框
 const FR_COL_TYPE_CITYPICKER    = 'citypicker'; //省市县选择器
 const FR_COL_TYPE_UPLIMAGE      = 'uplimage';   //上传图片
 const FR_COL_TYPE_DATE          = 'date';       //日期
