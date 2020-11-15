@@ -27,6 +27,21 @@ class Arrays
         return array_intersect_key( $array , $match);
     }
     /**
+     * 移除指定键
+     */
+    public static function unset(array &$array, $keys)
+    {
+        if(!is_array($keys)){
+            $keys = [$keys];
+        }
+        foreach( $keys as $key){
+            if(isset($array[$key])){
+                unset( $array[$key] );
+            }
+        }
+        return $array;
+    }
+    /**
      * 一维数组键名替换
      * @param array $data =  ['key1'=>'value1','key2'=>'value2','key3'=>'value3'];
      * @param array $keys =  ['key1'=>'res1','key3'=>'res3','key4'=>'res4'];
