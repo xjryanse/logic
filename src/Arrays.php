@@ -29,7 +29,7 @@ class Arrays
     /**
      * 移除指定键
      */
-    public static function unset(array &$array, $keys)
+    public static function unset( &$array, $keys)
     {
         if(!is_array($keys)){
             $keys = [$keys];
