@@ -27,8 +27,22 @@ class DbOperate
         $sql = "select * from information_schema.STATISTICS "
                 . "WHERE table_name ='" . $tableName . "' "
                 . "AND COLUMN_NAME = '". $columnName ."'";
-        $exist = Db::cache(60)->query( $sql );
+        $exist = Db::query( $sql );
         return $exist;        
+    }
+    /**
+     * 字段添加索引
+     */
+    public static function addColumnIndex( $tableName ,$columnName ,$indexName='')
+    {
+        if(self::isColumnIndexExist($tableName, $columnName)){
+            return false;
+        }
+        $indexNameK = $indexName ? "`".$indexName."`" : "";
+        $sql = "ALTER TABLE `".$tableName."` ADD INDEX ". $indexNameK ."(`".$columnName."`)";
+
+        $res = Db::query( $sql );
+        return $res;                
     }
     /*
      * 表名获取对应服务类
