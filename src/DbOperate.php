@@ -17,6 +17,19 @@ class DbOperate
         $exist = Db::cache(60)->query("show tables like '". $tableName ."'");
         return $exist;
     }
+    /**
+     * 索引是否存在
+     * @param type $tableName   表名
+     * @param type $columnName  字段名
+     */
+    public static function isColumnIndexExist( $tableName ,$columnName )
+    {
+        $sql = "select * from information_schema.STATISTICS "
+                . "WHERE table_name ='" . $tableName . "' "
+                . "AND COLUMN_NAME = '". $columnName ."'";
+        $exist = Db::cache(60)->query( $sql );
+        return $exist;        
+    }
     /*
      * 表名获取对应服务类
      */
