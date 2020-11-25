@@ -101,5 +101,5 @@ class Arrays
             }
         }
         return $arrayKeys;
-    }    
+    }
 }
