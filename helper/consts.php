@@ -54,6 +54,7 @@ const FR_COL_TYPE_CITYPICKER    = 'citypicker'; //省市县选择器
 const FR_COL_TYPE_UPLIMAGE      = 'uplimage';   //上传图片
 const FR_COL_TYPE_DATE          = 'date';       //日期
 const FR_COL_TYPE_EDITOR        = 'editor';     //编辑器
+const FR_COL_TYPE_NUMBER        = 'number';     //只能输入数字
 const FR_COL_TYPE_PHONE         = 'phone';      //输入手机号码
 const FR_COL_TYPE_IDNO          = 'idno';       //输入身份证号码
 
@@ -72,6 +73,7 @@ const FR_OPT_TPL_MAIN_KEY       = 'tpl_main_key';   //模板主列key
 const FR_OPT_TPL_GROUP_KEY      = 'tpl_group_key';  //模板分组key
 const FR_OPT_TPL_DATA_KEY       = 'tpl_data_key';   //模板数据key，用于和数据表的key匹配;
 const FR_OPT_TPL_COND           = 'tpl_cond';       //【写入表】关联主表id的字段名
+const FR_OPT_OPTION_COV         = 'option_cov';     //【写入表】选项卡转换
 
     //写入表额外
 const FR_OPT_MAIN_DATA_KEY      = 'main_data_key';  //【写入表】关联主表id的字段名
