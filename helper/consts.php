@@ -55,6 +55,7 @@ const FR_COL_TYPE_UPLIMAGE      = 'uplimage';   //上传图片
 const FR_COL_TYPE_DATE          = 'date';       //日期
 const FR_COL_TYPE_EDITOR        = 'editor';     //编辑器
 const FR_COL_TYPE_NUMBER        = 'number';     //只能输入数字
+const FR_COL_TYPE_PRIZE         = 'prize';      //价格设置
 const FR_COL_TYPE_PHONE         = 'phone';      //输入手机号码
 const FR_COL_TYPE_IDNO          = 'idno';       //输入身份证号码
 
