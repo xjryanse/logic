@@ -1,10 +1,10 @@
 <?php
-namespace app\common\service;
+namespace xjryanse\logic;
 
 /**
  * 雪花算法
  */
-class SnowFlakeService
+class SnowFlake
 {
     const EPOCH = 1479533469598;    
     const max12bit = 4095;    
