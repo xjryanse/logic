@@ -17,4 +17,20 @@ class Url
         $basenames  = explode('.', $basename);
         return isset($basenames[1]) ? $basenames[1] : '' ;
     }
+    /**
+     * 往url中添加参数
+     * @param type $url     url
+     * @param type $param   参数数组
+     * @return string
+     */
+    public static function addParam( $url, $param){
+        foreach($param as $k=>$v){
+            if( strstr ($url,'?')){
+                $url .= '&'. $k .'='.$v;
+            } else {
+                $url .= '?'. $k .'='.$v;
+            }
+        }
+        return $url;
+    }
 }
