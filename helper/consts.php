@@ -40,6 +40,7 @@ const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权�
 const FR_COL_TYPE_EMPTY         = 'empty';      //空
 const FR_COL_TYPE_HIDDEN        = 'hidden';     //隐藏域
 const FR_COL_TYPE_TEXT          = 'text';       //文本
+const FR_COL_TYPE_PASSWORD      = 'password';   //密码
 const FR_COL_TYPE_TEXTAREA      = 'textarea';   //文本框
 const FR_COL_TYPE_CHECK         = 'check';      //复选勾选
 const FR_COL_TYPE_RADIO         = 'radio';      //单选勾选
