@@ -80,6 +80,9 @@ const FR_OPT_OPTION_COV         = 'option_cov';     //【写入表】选项卡�
     //写入表额外
 const FR_OPT_MAIN_DATA_KEY      = 'main_data_key';  //【写入表】关联主表id的字段名
 const FR_OPT_MAIN_COND          = 'main_cond';      //【写入表】关联主表的条件
+//【资金来源微信】
+const FR_FINANCE_WECHAT         = 'wechat';     //微信
+const FR_FINANCE_MONEY          = 'money';       //余额:指存放在平台账户中的钱，类似电子钱包的功能
 
 #tpl_table=temp_goods_prize_key&tpl_main_key=main_key&tpl_group_key=belong_role&tpl_data_key=prize_key&to_table=ydzb_goods_prize&to_field=prize&main_field=goods_id&main_data_key=prize_key
 
