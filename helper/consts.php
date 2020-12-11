@@ -78,8 +78,9 @@ const FR_OPT_TPL_COND           = 'tpl_cond';       //【写入表】关联主�
 const FR_OPT_OPTION_COV         = 'option_cov';     //【写入表】选项卡转换
 
     //写入表额外
-const FR_OPT_MAIN_DATA_KEY      = 'main_data_key';  //【写入表】关联主表id的字段名
-const FR_OPT_MAIN_COND          = 'main_cond';      //【写入表】关联主表的条件
+const FR_OPT_MAIN_DATA_KEY      = 'main_data_key'   ;//【写入表】关联主表id的字段名
+const FR_OPT_MAIN_COND          = 'main_cond'       ;//【写入表】关联主表的条件
+const FR_OPT_MATCHES_DATA_KEY   = 'matches';//【写入表】关联主表id的字段名
 //【资金来源微信】
 const FR_FINANCE_WECHAT         = 'wechat';     //微信
 const FR_FINANCE_MONEY          = 'money';       //余额:指存放在平台账户中的钱，类似电子钱包的功能
