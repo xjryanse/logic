@@ -6,7 +6,7 @@ use xjryanse\system\interfaces\MainModelInterface;
 /**
  * {%modelDesc%}
  */
-class {%modelName%}Service implements MainModelInterface
+class {%modelName%}Service extends Base implements MainModelInterface
 {
     use \xjryanse\traits\InstTrait;
     use \xjryanse\traits\MainModelTrait;
@@ -14,4 +14,5 @@ class {%modelName%}Service implements MainModelInterface
     protected static $mainModel;
     protected static $mainModelClass    = '\\app\\{%module%}\\model\\{%modelName%}';
 
+    {%methods%}
 }

@@ -17,6 +17,19 @@ class DbOperate
         $exist = Db::cache(60)->query("show tables like '". $tableName ."'");
         return $exist;
     }
+    
+    /**
+     * 获取表全部字段
+     * @param type $tableName   表名
+     * @param type $columnName  字段名
+     */
+    public static function columns( $tableName  )
+    {
+        $sql = "select * from information_schema.COLUMNS "
+                . "WHERE table_name ='" . $tableName . "'";
+        $columns = Db::query( $sql );
+        return $columns;        
+    }
     /**
      * 索引是否存在
      * @param type $tableName   表名

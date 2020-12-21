@@ -16,15 +16,16 @@ abstract class Make
      * @param type $modelDesc   模型描述
      * @return type
      */
-    public function generate( $module, $modelName,$modelDesc)
+    public function generate( $module, $modelName,$modelDesc,$methods='')
     {
         $stub       = $this->getStub();
         $content    = file_get_contents($stub);
         //文件内容
-        $afterReplaceContent = str_replace(['{%module%}', '{%modelName%}', '{%modelDesc%}'], [
+        $afterReplaceContent = str_replace(['{%module%}', '{%modelName%}', '{%modelDesc%}','{%methods%}'], [
             $module,
             $modelName,
             $modelDesc,
+            $methods
         ], $content);
         //文件路径
         $filePath = $this->getPathName( $module, $modelName );

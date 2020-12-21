@@ -41,7 +41,7 @@ class FileMake
         //分别创建模型，模型基类，服务类（如文件已存在，将跳过不创建）
         $res['model']       = (new Model())->generate( $module, $modelName, $modelDesc);
         $res['modelBase']   = (new ModelBase())->generate( $module, $modelName, $modelDesc);
-        $res['service']     = (new Service())->generate( $module, $modelName, $modelDesc);
+        $res['service']     = (new Service())->generate( $module, $modelName, $modelDesc,Service::getMethods($tableName));
         return json($res);
     }
 }
