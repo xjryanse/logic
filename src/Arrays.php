@@ -102,4 +102,23 @@ class Arrays
         }
         return $arrayKeys;
     }
+    /**
+     * 形如prizeInfo.sellerTmAuthDeposit的key，转为['prizeInfo']['sellerTmAuthDeposit']
+     */
+    public static function keySplit( $array, $split = "." )
+    {
+        foreach( $array as $key=>&$value ){
+            if( !strstr( $key, $split )){    continue;    }
+            $keys = explode('.',$key);
+            $tmpArr = &$array;
+            foreach( $keys as $kk=>$vv){
+                $tmpArr[$vv] = isset($tmpArr[$vv]) ? $tmpArr[$vv] : [] ;
+                $tmpArr = &$tmpArr[$vv];
+            }
+            //最根根赋值
+            $tmpArr = $value;
+            unset($array[$key]);
+        }
+        return $array;
+    }
 }

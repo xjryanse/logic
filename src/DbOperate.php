@@ -89,4 +89,21 @@ class DbOperate
     {
         return Db::table( $tableName )->where( $con )->order('id desc')->value('id');
     }
+    
+    /**
+     * 额外数据添加
+     * 数据结构：表名.字段名
+     */
+    public static function extraData( &$item, $tableName, $tableId )
+    {
+        $service        = self::getService( $tableName );
+        $tableInfo      = $service::getInstance( $tableId )->get() ;
+        $tableInfoArr   = $tableInfo ? $tableInfo->toArray() : [] ;
+        //表名 加 点
+        foreach( $tableInfoArr as $key=>$value ){
+            $item[ $tableName.'.'.$key ] = $value;
+        }
+        $item[$tableName] = $tableInfoArr;
+        return $item;
+    }
 }
