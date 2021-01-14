@@ -88,6 +88,15 @@ const FR_OPT_MATCHES_DATA_KEY   = 'matches';//【写入表】关联主表id的�
 const FR_FINANCE_WECHAT         = 'wechat';     //微信
 const FR_FINANCE_MONEY          = 'money';       //余额:指存放在平台账户中的钱，类似电子钱包的功能
 
+const ORDER_NEEDPAY    = 'needpay';   //待支付
+const ORDER_PROCESSING = 'processing';   //进行中
+const ORDER_FINISH     = 'finish';   //已完成
+const ORDER_CLOSE      = 'close';   //已关闭
+
+const ORDER_FINISH_NODE                     = "orderFinish";                //【公用节点】订单完成
+const ORDER_CLOSE_NODE                      = "orderClose";                 //【公用节点】交易关闭
+
+
 #tpl_table=temp_goods_prize_key&tpl_main_key=main_key&tpl_group_key=belong_role&tpl_data_key=prize_key&to_table=ydzb_goods_prize&to_field=prize&main_field=goods_id&main_data_key=prize_key
 
 #table_name=ydzb_user_auth_access&key=id&value=name&to_table=ydzb_user_auth_role_access&pid=pid&to_field=access_id&main_field=role_id

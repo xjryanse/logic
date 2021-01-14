@@ -25,4 +25,19 @@ class Datetime
         }
         return $dateArr;
     }
+    /**
+     * 最近n天的日期
+     * @param type $days    天数
+     * @param type $to      0截止今天，1截止昨天
+     * @param type $format  格式
+     */
+    public static function lastDaysArr( $days = 7,$to = 1, $format = "Y-m-d" )
+    {
+        $startTime = time()- 86400 * ($days + $to - 1);
+        $dateArr = [];
+        for($i=0;$i<$days;$i++){
+            $dateArr[] = date($format,$startTime + $i * 86400);
+        }
+        return $dateArr;
+    }
 }
