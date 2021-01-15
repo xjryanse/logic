@@ -13,11 +13,16 @@ class Sql
      */
     public static function buildCaseWhen( $field , array $array)
     {
-        $str = "(CASE ". $field ;
-        foreach( $array as $key=>$value){
-            $str .= " WHEN '". $key ."' THEN '". $value  ."'";
+        if($array){
+            $str = "(CASE ". $field ;
+            foreach( $array as $key=>$value){
+                $str .= " WHEN '". $key ."' THEN '". $value  ."'";
+            }
+            $str .= " ELSE '' END)";
+        } else {
+            //解决$array 为空报错-20210115
+            $str = $field . ' ';
         }
-        $str .= " ELSE '' END)";
         
         return $str;
     }
