@@ -9,7 +9,7 @@ class Arrays
     /**
      * 数组取值
      */
-    public static function value( array $array , string $key,$default='' )
+    public static function value( $array , string $key,$default='' )
     {
         return isset($array[ $key ]) ? $array[ $key ] : $default;
     }

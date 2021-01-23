@@ -15,7 +15,7 @@ class DbExtraData
     {
         $service        = DbOperate::getService( $tableName );
         $tableInfo      = $service::getInstance( $tableId )->get() ;
-        $tableInfoArr   = $tableInfo ? $tableInfo->toArray() : [] ;
+        $tableInfoArr   = $tableInfo && is_object($tableInfo) ? $tableInfo->toArray() : [] ;
         //表名 加 点
         foreach( $tableInfoArr as $key=>$value ){
             $item[ $tableName.'.'.$key ] = $value;

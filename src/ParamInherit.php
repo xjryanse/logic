@@ -14,8 +14,8 @@ class ParamInherit
         //  pCompanyId:父级公司id
         $defaultArr     = ['admKey','comKey','pCompanyId'];
         $requestParams  = Request::only( array_merge( $params, $defaultArr ) );
-        //comKey：参数优先
-        $res = array_merge(['comKey'=>session(SESSION_COMPANY_KEY)],$requestParams);
+        //comKey：参数优先，openid，兼容微信
+        $res = array_merge(['comKey'=>session(SESSION_COMPANY_KEY),'openid'=>session(SESSION_OPENID)],$requestParams);
         return $res;
     }
 }

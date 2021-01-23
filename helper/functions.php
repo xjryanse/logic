@@ -28,7 +28,9 @@ if (!function_exists('equalsToKeyValue')) {
         $arr = explode( $explode ,$string );
         foreach($arr as $v) {
             $t = explode('=',$v);
-            $newArr[$t[0]] = $t[1];
+            $key = $t[0];
+            unset($t[0]);//移除键
+            $newArr[$key] = implode('=',$t);    //防止数据中有等号出bug
         }
         return $newArr;
     }
@@ -179,7 +181,7 @@ if(!function_exists('cityExplode')){
      */
     function cityExplode( $string, $keys = ["province","city","county"], $delimiter=" " ) {
         $values = explode( $delimiter, $string );
-        return array_combine($keys, $values);
+        return $values && count($values) == count($keys) ? array_combine($keys, $values) : [];
     }
 }
 /*

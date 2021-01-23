@@ -5,14 +5,18 @@ use think\Db;
 /**
  * 数据库操作类库
  */
-class DbOperate
+class IdInfo
 {
     /**
      * 判断数据表是否存在
      * @return type
      */
-    public static function isTableExist( $tableName )
+    public static function getInfo( $fieldName,$tableName,$resField='' )
     {
+        $service = DbOperate::getService( $tableName );
+        
+        
+
         //判断数据表是否存在
         $exist = Db::cache(60)->query("show tables like '". $tableName ."'");
         return $exist;
