@@ -140,4 +140,35 @@ class DbOperate
             
         }
     }
+    /**
+     * 在主表不在从表中的字段
+     */
+    /**
+     * 
+     * @param type $table       取字段的表
+     * @param type $exceptTable 
+     */
+    public static function fieldsExceptByTable( $table,$exceptTable)
+    {
+        $tableColumns   = self::columns($table);
+        $tableFields    = array_column( $tableColumns,'COLUMN_NAME');
+        $exceptColumns  = self::columns($exceptTable);
+        $exceptFields   = array_column( $exceptColumns,'COLUMN_NAME');
+        return array_diff($tableFields, $exceptFields);
+    }
+    /**
+     * 字段数组和表别名组合成字符串（用于sql中查询字段）
+     * @param type $fields     字段
+     * @param type $alias       别名
+     */
+    public static function fieldsAliasStr( $fields , $alias )
+    {
+        if($alias){
+            foreach($fields as &$field){
+                $field = $alias. '.' . $field;
+            }
+        }
+        return implode( ',',$fields );
+    }
+            
 }

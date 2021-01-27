@@ -7,15 +7,34 @@ namespace xjryanse\logic;
 class ModelQueryCon
 {
     /**
+     * 获取class
+     * @param type $type
+     */
+    private static function getClassStr($type) {
+        return '\\xjryanse\\logic\\ModelQueryCon\\' . ucfirst($type);
+    }
+    
+    /**
+     * 选项转换
+     * @param type $type    类型
+     * @param type $key     key
+     * @param type $value   值
+     * @return type
+     */
+    public static function getCon($type,$key, $value) {
+        $class = self::getClassStr($type);
+        return class_exists($class) ? $class::getCon($key,$value) : [];
+    }
+    /**
      * 条件拆解成and 连接
      */
-    public static function conditionParse( $con )
+    public static function conditionParse( $con ,$alias = "")
     {
         //条件参数的形式：$con[] = ['aa','=','bb'];
         $condition = [];
         foreach($con as $v){
             $v[2] = '\''.$v[2].'\'';
-            $condition[] = implode(' ',$v);
+            $condition[] = $alias ? $alias . '.' .implode(' ',$v) : implode(' ',$v);
         }
         //将参数组装成 and 连接，没有条件时，丢个1，兼容where 
         $conStr = $condition ? implode( ' and ',$condition ) : 1 ;         
