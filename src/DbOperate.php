@@ -48,6 +48,9 @@ class DbOperate
      */
     public static function addColumnIndex( $tableName ,$columnName ,$indexName='')
     {
+        if( !self::getService( $tableName )::mainModel()->hasField( $columnName )){
+            return false;
+        }
         if(self::isColumnIndexExist($tableName, $columnName)){
             return false;
         }
