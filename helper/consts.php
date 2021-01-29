@@ -11,6 +11,11 @@ const RES_CODE_INVALID_TOKEN    = 1001; //无效访问凭据；
 const RES_CODE_NO_LOGIN         = 1003; //用户未登录；
 const RES_CODE_NO_INFO          = 1004; //用户未完善信息；
 
+const SOURCE_ADMIN          = 'admin';  //后台
+const SOURCE_WEPUB          = 'wePub';  //微信公众号
+const SOURCE_WEAPP          = 'weApp';  //微信小程序
+const SOURCE_WEBPC          = 'webPc';  //用户PC端
+
 /**
  * 审核状态的常量
  */
