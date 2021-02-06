@@ -38,6 +38,9 @@ const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 const SESSION_OPENID        =   'myOpenid';             //session openid的名称
 
+const SOURCE_WEPUB = 'wePub'  ;   //微信公众号
+const SOURCE_WEAPP = 'weApp'  ;   //微信小程序
+const SOURCE_ADMIN = 'admin'  ;   //管理后台
 
 //框架字段类型:FR_框架
 const FR_COL_TYPE_EMPTY         = 'empty';      //空
