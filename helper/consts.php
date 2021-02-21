@@ -33,6 +33,7 @@ const XJRYANSE_OP_FAIL      = 'fail';   //已失败
 const SESSION_SOURCE        =   'scopeSource';          //全局来源：admin：后台：wePub；微信公众号；webPc
 const SESSION_APP_ID        =   'scopeAppId';           //全局APPID
 const SESSION_COMPANY_ID    =   'scopeCompanyId';       //全局公司id
+const SESSION_CUSTOMER_ID   =   'scopeCustomerId';      //全局客户id
 const SESSION_COMPANY_KEY   =   'scopeCompanyKey';      //全局公司key
 const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
