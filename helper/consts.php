@@ -18,6 +18,9 @@ const AUDIT_TODO    = 0;//待审核
 const AUDIT_PASS    = 1;//审核通过
 const AUDIT_REJECT  = 2;//审核拒绝
 
+const GOODS_OFFSALE    = "offsale";     //商品下架
+const GOODS_ONSALE     = "onsale";     //商品上架
+
 /**
  * 事件处理的常量
  */
