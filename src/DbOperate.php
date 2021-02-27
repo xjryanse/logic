@@ -144,6 +144,16 @@ class DbOperate
         }
     }
     /**
+     * 过滤出数据表中有的字段（一般用于保存前处理）
+     */
+    public static function dataFilter( $tableName,array $data)
+    {
+        $tableColumns   = self::columns($tableName);
+        $tableFields    = array_column( $tableColumns,'COLUMN_NAME');        
+        $res = Arrays::getByKeys($data, $tableFields);
+        return $res;
+    }
+    /**
      * 在主表不在从表中的字段
      */
     /**
