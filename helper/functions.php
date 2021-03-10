@@ -267,3 +267,20 @@ if(!function_exists('appEncrypt')){
         return $myEncrypt;
     }
 }
+
+if(!function_exists('excelTimeToTimestamp')){
+    function excelTimeToTimestamp( $value ) {
+        $timestamp  = ($value-70*365-19)*86400-8*3600;
+        return $timestamp;
+    }
+}
+
+/**
+ * excel日期转年月日
+ */
+if(!function_exists('excelTimeToDatetime')){
+    function excelTimeToDatetime( $value ) {
+        $timestamp  = ($value-70*365-19)*86400-8*3600;
+        return date('Y-m-d H:i:s',$timestamp);
+    }
+}
