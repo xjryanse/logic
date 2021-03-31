@@ -2,6 +2,7 @@
 namespace xjryanse\logic;
 
 use think\Db;
+use think\facade\Cache;
 /**
  * 数据库操作类库
  */
@@ -13,8 +14,13 @@ class DbOperate
      */
     public static function isTableExist( $tableName )
     {
-        //判断数据表是否存在
-        $exist = Db::cache(60)->query("show tables like '". $tableName ."'");
+        $cacheKey = __CLASS__.__METHOD__;
+        $exist = Cache::get($cacheKey);
+        if(!$exist){
+            //判断数据表是否存在
+            $exist = Db::cache(60)->query("show tables like '". $tableName ."'");
+            Cache::set($cacheKey,$exist);
+        }
         return $exist;
     }
     
@@ -25,9 +31,14 @@ class DbOperate
      */
     public static function columns( $tableName  )
     {
-        $sql = "select * from information_schema.COLUMNS "
-                . "WHERE table_name ='" . $tableName . "'";
-        $columns = Db::query( $sql );
+        $cacheKey = __CLASS__.__METHOD__.$tableName;
+        $columns = Cache::get($cacheKey);
+        if(!$columns){
+            $sql = "select * from information_schema.COLUMNS "
+                    . "WHERE table_name ='" . $tableName . "'";
+            $columns = Db::query( $sql );
+            Cache::set($cacheKey,$columns);
+        }
         return $columns;        
     }
     /**
@@ -37,10 +48,15 @@ class DbOperate
      */
     public static function isColumnIndexExist( $tableName ,$columnName )
     {
-        $sql = "select * from information_schema.STATISTICS "
-                . "WHERE table_name ='" . $tableName . "' "
-                . "AND COLUMN_NAME = '". $columnName ."'";
-        $exist = Db::query( $sql );
+        $cacheKey = __CLASS__.__METHOD__.$tableName.$columnName;
+        $exist = Cache::get($cacheKey);
+        if(!$exist){        
+            $sql = "select * from information_schema.STATISTICS "
+                    . "WHERE table_name ='" . $tableName . "' "
+                    . "AND COLUMN_NAME = '". $columnName ."'";
+            $exist = Db::query( $sql );
+            Cache::set($cacheKey,$exist);            
+        }
         return $exist;        
     }
     /**

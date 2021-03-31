@@ -4,6 +4,7 @@ namespace xjryanse\logic;
 use xjryanse\logic\FileMake\logic\make\Model;
 use xjryanse\logic\FileMake\logic\make\ModelBase;
 use xjryanse\logic\FileMake\logic\make\Service;
+use xjryanse\logic\FileMake\logic\make\ServiceBase;
 use xjryanse\logic\DbOperate;
 use Exception;
 /**
@@ -42,6 +43,7 @@ class FileMake
         $res['model']       = (new Model())->generate( $module, $modelName, $modelDesc);
         $res['modelBase']   = (new ModelBase())->generate( $module, $modelName, $modelDesc);
         $res['service']     = (new Service())->generate( $module, $modelName, $modelDesc,Service::getMethods($tableName));
+        $res['serviceBase'] = (new ServiceBase())->generate( $module, $modelName, $modelDesc);
         return json($res);
     }
 }
