@@ -40,4 +40,39 @@ class Datetime
         }
         return $dateArr;
     }
+    
+    /**
+     * 获取区间时间
+     * @param type $period
+     * @param type $unit
+     * @return type
+     */
+    public static function periodTime( $period, $unit, $time = '' )
+    {
+        if( !$time ){
+            $time = date('Y-m-d H:i:s');
+        }
+        //时间戳的处理：TODO优化
+        if(is_numeric($time)){
+            $time = date('Y-m-d H:i:s',$time);
+        }
+        //日
+        if($unit == 'day'){
+            $date['from_time']  = date('Y-m-d 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
+            $date['to_time']    = date('Y-m-d 23:59:59',strtotime( $time) );
+        }
+        //月
+        if($unit == 'month'){
+            $date['from_time']  = date('Y-m-01 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
+            $date['to_time']    = date('Y-m-d H:i:s',strtotime( '+1 '. $unit.' -1 second', strtotime( $date['from_time'] ) ) );
+        }
+        //年
+        if($unit == 'year'){
+            $date['from_time']  = date('Y-01-01 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
+            $date['to_time']    = date('Y-m-d H:i:s',strtotime( '+1 '. $unit.' -1 second', strtotime( $date['from_time'] ) ) );
+        }
+
+        return $date;
+    }
+    
 }

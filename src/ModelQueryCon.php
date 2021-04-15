@@ -139,6 +139,7 @@ class ModelQueryCon
                 break;
             default:
         }
+        Debug::debug('ModelQueryCon查询条件', $con);
         return $con;
     }
     

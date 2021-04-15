@@ -1,6 +1,7 @@
 <?php
 namespace xjryanse\logic;
 
+use xjryanse\logic\Arrays;
 /**
  * Sql语句处理逻辑
  */
@@ -16,7 +17,8 @@ class Sql
         if($array){
             $str = "(CASE ". $field ;
             foreach( $array as $key=>$value){
-                $str .= " WHEN '". $key ."' THEN '". $value  ."'";
+                $strVal = is_array($value) ? Arrays::value($value, 'label') : $value;
+                $str .= " WHEN '". $key ."' THEN '". $strVal  ."'";
             }
             $str .= " ELSE '' END)";
         } else {
