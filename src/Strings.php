@@ -21,6 +21,16 @@ class Strings
         $prefix = substr($str,0,$start);
         return $prefix.$next;
     }
-    
+    /**
+     * 有些变态空格，使用trim无法去除，用本方法
+     * @param type $value
+     * @return type
+     */
+    public static function clearEmptyChar( $value )
+    {
+        $value = preg_replace("/^[\s\v".chr(194).chr(160)."]+/","", $value); //替换开头空字符
+        $value = preg_replace("/[\s\v".chr(194).chr(160)."]+$/","", $value); //替换结尾空字符
+        return $value;
+    }
 
 }

@@ -47,8 +47,12 @@ class Arrays
      * @param array $keys =  ['key1'=>'res1','key3'=>'res3','key4'=>'res4'];
      * @return type          ['res1'=>'value1','res3'=>'value3'];
      */
-    public static function keyReplace( array $data, array $keys )
+    public static function keyReplace( $data, array $keys )
     {
+        if(!$data){
+            return [];
+        }
+        
         $values     = array_intersect_key($data, $keys);
         ksort($values);
         $repKeys    = array_intersect_key($keys, $values);
