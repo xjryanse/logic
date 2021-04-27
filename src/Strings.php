@@ -32,5 +32,12 @@ class Strings
         $value = preg_replace("/[\s\v".chr(194).chr(160)."]+$/","", $value); //替换结尾空字符
         return $value;
     }
+    /**
+     * 是否包含中文
+     */
+    public static function hasChineseChar( $str )
+    {
+        return preg_match("/([\x81-\xfe][\x40-\xfe])/", $str, $match);
+    }
 
 }

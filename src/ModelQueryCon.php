@@ -33,7 +33,15 @@ class ModelQueryCon
         //条件参数的形式：$con[] = ['aa','=','bb'];
         $condition = [];
         foreach($con as $v){
-            $v[2] = '\''.$v[2].'\'';
+            $tmpStr = "";
+            if($v[1] == "in"){
+                if(is_string($v[2])){
+                    $v[2] = [$v[2]];
+                }
+                $v[2] = "(".implode(',',$v[2]).")";
+            } else {
+                $v[2] = '\''.$v[2].'\'';
+            }
             $condition[] = $alias ? $alias . '.' .implode(' ',$v) : implode(' ',$v);
         }
         //将参数组装成 and 连接，没有条件时，丢个1，兼容where 

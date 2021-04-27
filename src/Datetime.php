@@ -58,18 +58,18 @@ class Datetime
         }
         //日
         if($unit == 'day'){
-            $date['from_time']  = date('Y-m-d 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
-            $date['to_time']    = date('Y-m-d 23:59:59',strtotime( $time) );
+            $date['fromTime']  = date('Y-m-d 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
+            $date['toTime']    = date('Y-m-d 23:59:59',strtotime( $time) );
         }
         //月
         if($unit == 'month'){
-            $date['from_time']  = date('Y-m-01 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
-            $date['to_time']    = date('Y-m-d H:i:s',strtotime( '+1 '. $unit.' -1 second', strtotime( $date['from_time'] ) ) );
+            $date['fromTime']  = date('Y-m-01 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
+            $date['toTime']    = date('Y-m-d H:i:s',strtotime( '+1 '. $unit.' -1 second', strtotime( $date['from_time'] ) ) );
         }
         //年
         if($unit == 'year'){
-            $date['from_time']  = date('Y-01-01 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
-            $date['to_time']    = date('Y-m-d H:i:s',strtotime( '+1 '. $unit.' -1 second', strtotime( $date['from_time'] ) ) );
+            $date['fromTime']  = date('Y-01-01 00:00:00',strtotime( '-'.($period - 1) .' '. $unit, strtotime($time) ) );
+            $date['toTime']    = date('Y-m-d H:i:s',strtotime( '+1 '. $unit.' -1 second', strtotime( $date['from_time'] ) ) );
         }
 
         return $date;

@@ -84,20 +84,4 @@ class Arrays2d
         }
         return $respData;
     }
-    
-    /**
-     * 数组指定键取值
-     * @param type $array   数据数组
-     * @param type $keys    键值数组
-     * @return type
-     */
-    public static function getByKeys(array $array,array $keys )
-    {
-        foreach($array as &$value){
-            $match = array_fill_keys($keys, "");
-            //比较两个（或更多个）数组的键名 ，并返回交集。
-            $value = array_intersect_key( $value , $match);
-        }
-        return $array;
-    }
 }
