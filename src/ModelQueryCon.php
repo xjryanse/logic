@@ -38,7 +38,7 @@ class ModelQueryCon
                 if(is_string($v[2])){
                     $v[2] = [$v[2]];
                 }
-                $v[2] = "(".implode(',',$v[2]).")";
+                $v[2] = "('".implode('\',\'',$v[2])."')";
             } else {
                 $v[2] = '\''.$v[2].'\'';
             }
