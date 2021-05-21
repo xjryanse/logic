@@ -42,7 +42,18 @@ class ModelQueryCon
             } else {
                 $v[2] = '\''.$v[2].'\'';
             }
-            $condition[] = $alias ? $alias . '.' .implode(' ',$v) : implode(' ',$v);
+            //添加别名
+            if(strstr($v[0], '(') && $alias){
+                //带括号的，用这边进行添加
+                $temp = explode('(',$v[0]);
+                $temp[1] = $alias .'.'. $temp[1];
+                $v[0] = implode('(',$temp);
+            } else {
+                //常规的添加
+                $v[0]           = $alias ? $alias .'.'. $v[0] :$v[0];
+            }
+            
+            $condition[]    = implode(' ',$v);
         }
         //将参数组装成 and 连接，没有条件时，丢个1，兼容where 
         $conStr = $condition ? implode( ' and ',$condition ) : 1 ;         
@@ -176,4 +187,48 @@ class ModelQueryCon
             return false;
         }
     }    
+    /*
+     * 特殊搜索条件拆解
+     * start:'开头是',end:'结尾是',equal:'等于',contain:'包含',length:"长度为",empty:"是空的"
+     * @param type $specialSearchArr    二维数组
+     * 格式形如：
+     *  specialSearchData[0][name]: tm_name
+        specialSearchData[0][condition]: start
+        specialSearchData[0][value]: 1111
+     */
+    public static function specialSearchToCon( $specialSearchArr )
+    {
+        $con = [];
+        foreach($specialSearchArr as $key=>$value){
+            $conName        = Arrays::value($value, 'name');
+            $conCondition   = Arrays::value($value, 'condition'); 
+            $conValue       = Arrays::value($value, 'value');
+            
+            //开头是
+            if($conCondition == 'start'){
+                $con[] = [ $conName ,'like',$conValue.'%'];
+            }
+            //结尾是
+            if($conCondition=='end'){
+                $con[] = [$conName,'like','%'.$conValue];
+            }
+            //结尾是
+            if($conCondition=='equal'){
+                $con[] = [$conName,'=',$conValue];
+            }
+            //包含
+            if($conCondition=='contain'){
+                $con[] = [$conName,'like','%'.$conValue.'%'];
+            }
+            //长度为
+            if($conCondition=='length'){
+                $con[] = ["char_length(".$conName.")",'=',$conValue];
+            }
+            //长度为
+            if($conCondition=='empty'){
+                $con[] = [$conName,'=',''];
+            }
+        }
+        return $con;
+    }
 }

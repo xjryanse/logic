@@ -37,7 +37,25 @@ class Strings
      */
     public static function hasChineseChar( $str )
     {
-        return preg_match("/([\x81-\xfe][\x40-\xfe])/", $str, $match);
+        if (preg_match('/^[\x{4e00}-\x{9fa5}]+$/u', $str)>0) {
+            return 2;   // '全是中文';
+        } else if(preg_match('/[\x{4e00}-\x{9fa5}]/u', $str)>0) {
+            return 1;   // '含有中文';
+        } else {
+            return 0;   //  '没有中文'
+        }
     }
-
+    /**
+     * 是否包含英文
+     * @param type $str
+     */
+    public static function hasEnglishChar( $str )
+    {
+        $preg2 = '/[a-zA-Z]/';
+        if( preg_match($preg2,$str) ){
+            return 1;   //包含字母
+        } else {
+            return 0;   //不包含字母
+        }
+    }
 }

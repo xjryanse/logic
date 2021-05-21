@@ -42,6 +42,20 @@ class DbOperate
         return $columns;        
     }
     /**
+     * 实际字段：排除虚拟字段
+     */
+    public static function realFieldsArr( $tableName )
+    {
+        $columns    = self::columns($tableName);
+        $fieldArr   = [];
+        foreach($columns as $key=>$value){
+            if($value['EXTRA'] != 'VIRTUAL GENERATED'){
+                $fieldArr[] = $value['COLUMN_NAME'];
+            }
+        }
+        return $fieldArr;
+    }
+    /**
      * 索引是否存在
      * @param type $tableName   表名
      * @param type $columnName  字段名
