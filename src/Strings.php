@@ -58,4 +58,24 @@ class Strings
             return 0;   //不包含字母
         }
     }
+    
+    public static function toUtf8 ($str = '') 
+    {
+        $current_encode = mb_detect_encoding($str, array("ASCII","GB2312","GBK",'BIG5','UTF-8')); 
+        $encoded_str = mb_convert_encoding($str, 'UTF-8', $current_encode);
+        return $encoded_str;
+    }
+    /**
+     * 
+     * @param type $dataStr
+     * @param type $assoc
+     * @return boolean
+     */
+    public static function isJson($dataStr = '', $assoc = false) {
+        $data = json_decode($dataStr, $assoc);
+        if (($data && (is_object($data))) || (is_array($data) && !empty($data))) {
+            return true;
+        }
+        return false;
+    }
 }
