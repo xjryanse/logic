@@ -23,12 +23,20 @@ class Url
      * @param type $param   参数数组
      * @return string
      */
-    public static function addParam( $url, $param){
+    public static function addParam( $url, $param, $exceptParam = []){
         //拆解参数
         $parseUrl = explode('?',$url); 
         if(isset($parseUrl[1])){
             //合并参数
             $param = array_merge( equalsToKeyValue($parseUrl[1]) , $param );
+        }
+        //剔除参数
+        if($exceptParam){
+            foreach($exceptParam as $key){
+                if(isset($param[$key])){
+                    unset($param[$key]);
+                }
+            }
         }
         //拼接参数
         $urlRes = $parseUrl[0];

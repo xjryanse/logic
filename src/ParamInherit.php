@@ -1,7 +1,6 @@
 <?php
 namespace xjryanse\logic;
 
-use think\facade\Request;
 /**
  * 请求参数继承类库
  */
