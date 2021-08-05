@@ -8,6 +8,11 @@ use think\facade\Cache;
  */
 class DbOperate
 {
+    public static function createTableSql( $tableName ){
+        $createTableSql = Db::cache(60)->query("show create table ". $tableName );
+        return $createTableSql[0]['Create Table'];
+    }
+    
     /**
      * 判断数据表是否存在
      * @return type
@@ -118,9 +123,9 @@ class DbOperate
      * 当前表末条id
      * @param type $tableName
      */
-    public static function lastId( $tableName ,$con = []) 
+    public static function lastId( $tableName ,$con = [],$cache=0 ) 
     {
-        return Db::table( $tableName )->where( $con )->order('id desc')->value('id');
+        return Db::table( $tableName )->where( $con )->order('id desc')->cache( $cache )->value('id');
     }
     
     /**

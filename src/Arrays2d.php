@@ -40,14 +40,22 @@ class Arrays2d
     
     /**
      * 二维数组键名替换
+     * @param array $data   
+     * @param array $keys
+     * @param type $mergeRaw    是否合并原数组
+     * @return array
      */
-    public static function keyReplace( array $data, array $keys ) {
+    public static function keyReplace( array $data, array $keys, $mergeRaw = false ) {
         $resData = [];
         foreach( $data as $k=>$v){
             foreach($keys as $kk=>$kv){
                 if(isset($v[$kk])){
                     $resData[$k][$kv] = $v[$kk];
                 }
+            }
+            //是否合并原数组
+            if($mergeRaw){
+                $resData[$k] = array_merge($resData[$k], $v);
             }
         }
 

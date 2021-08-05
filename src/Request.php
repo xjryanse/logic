@@ -16,6 +16,10 @@ class Request {
         }
     }
 
+    public static function post( $name = '',$default ="" ){
+        return TpRequest::post( $name, $default );
+    }
+    
     public static function __callStatic($name, $arguments) {
         return TpRequest::$name($arguments);
     }

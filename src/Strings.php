@@ -66,7 +66,7 @@ class Strings
         return $encoded_str;
     }
     /**
-     * 
+     * 判断是否json格式
      * @param type $dataStr
      * @param type $assoc
      * @return boolean
@@ -77,5 +77,30 @@ class Strings
             return true;
         }
         return false;
+    }
+    /**
+     * 保留几位，剩下的……
+     */
+    public static function keepLength($str,$length)
+    {
+        return mb_strlen($str) > $length ? mb_substr($str, 0,$length) .'…' : $str ;
+    }
+    
+    /**
+     * 字符串是否以某字符串开始
+     * @param type $str
+     * @param type $start
+     * @return type
+     */
+    public static function startWith($str,$start){
+        return substr($str, 0, strlen($start)) === $start;
+    }
+    /**
+     * 字符串是否以某字符串结束
+     * @param type $str
+     * @param type $end
+     */
+    public static function endWith($str,$end){
+        return substr(strrev($str), 0, strlen($end)) === strrev($end);
     }
 }
