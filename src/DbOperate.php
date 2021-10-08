@@ -3,6 +3,7 @@ namespace xjryanse\logic;
 
 use think\Db;
 use think\facade\Cache;
+use xjryanse\logic\Cachex;
 /**
  * 数据库操作类库
  */

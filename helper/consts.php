@@ -41,6 +41,7 @@ const SESSION_COMPANY_KEY   =   'scopeCompanyKey';      //全局公司key
 const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 const SESSION_OPENID        =   'myOpenid';             //session openid的名称
+const SESSION_DIRECT_AFTER  =   'directAfter';          // 直接执行后续的触发动作,开启后一般需要及时关闭
 
 const SOURCE_WEPUB = 'wePub'  ;   //微信公众号
 const SOURCE_WEAPP = 'weApp'  ;   //微信小程序
@@ -111,3 +112,13 @@ const ORDER_CLOSE_NODE                      = "orderClose";                 //�
 
 #table_name=ydzb_user_auth_access&key=id&value=name&to_table=ydzb_user_auth_role_access&pid=pid&to_field=access_id&main_field=role_id
 
+//账户类型：
+//积分账户
+const ACCOUNT_SCORE  = 'score';  
+//余额账户
+const ACCOUNT_MONEY  = 'money';  
+
+//从主库读数据
+const MASTER_DATA = true;
+//从从库读数据
+const SLAVE_DATA = false;

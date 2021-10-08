@@ -79,6 +79,14 @@ class Strings
         return false;
     }
     /**
+     * 字符串是否一个手机号码
+     * @param type $dataStr
+     */
+    public static function isPhone($dataStr){
+        return preg_match('/^1[3456789]{1}\d{9}$/',$dataStr) ? true : false;
+    }
+    
+    /**
      * 保留几位，剩下的……
      */
     public static function keepLength($str,$length)
@@ -92,7 +100,7 @@ class Strings
      * @param type $start
      * @return type
      */
-    public static function startWith($str,$start){
+    public static function isStartWith($str,$start){
         return substr($str, 0, strlen($start)) === $start;
     }
     /**
@@ -100,7 +108,20 @@ class Strings
      * @param type $str
      * @param type $end
      */
-    public static function endWith($str,$end){
+    public static function isEndWith($str,$end){
         return substr(strrev($str), 0, strlen($end)) === strrev($end);
     }
+    /**
+     * 以数据的键值对替换字符串
+     * @param type $str
+     * @param type $data
+     * @return type
+     */
+    public static function dataReplace($str,array $data){
+        foreach($data as $key=>&$value){
+            $str = str_replace('{$' . $key . '}', $value, $str);
+        }
+        return $str;
+    }
+
 }

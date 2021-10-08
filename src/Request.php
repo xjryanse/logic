@@ -20,6 +20,10 @@ class Request {
         return TpRequest::post( $name, $default );
     }
     
+    public static function route( $name = '',$default ="" ){
+        return TpRequest::route( $name, $default );
+    }
+    
     public static function __callStatic($name, $arguments) {
         return TpRequest::$name($arguments);
     }

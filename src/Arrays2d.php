@@ -1,6 +1,7 @@
 <?php
 namespace xjryanse\logic;
 
+use xjryanse\logic\Arrays;
 /**
  * 二维数组处理逻辑
  */
@@ -107,5 +108,59 @@ class Arrays2d
             $value = array_intersect_key( $value , $match);
         }
         return $array;
+    }
+    /**
+     * 将某个字段设为key（需唯一）
+     */
+    public static function fieldSetKey(array $array,$keyField){
+        return array_column($array,null,$keyField);
+    }
+    /**
+     * 转一维键值对
+     */
+    public static function toKeyValue(array $array, $keyField, $valueField){
+        $keys = array_column($array, $keyField);
+        $values = array_column($array, $valueField);
+        return array_combine($keys, $values);
+    }
+    /**
+     * 根据指定字段的值，返回新数组
+     * 场景示例：批量提取了10个订单的流程节点，需要按每个订单进行拆分
+     */
+    public static function listByFieldValue( $array, $keyField, $value){
+        $tempArr = [];
+        foreach($array as &$arrItem){
+            if(Arrays::value($arrItem, $keyField) == $value){
+                $tempArr[] = $arrItem;
+            }
+        }
+        return $tempArr;
+    }
+    /**
+     * 列表数据过滤
+     * @param type $listsAll 二维数组数据
+     * @param type $con     过滤条件（兼容数据库查询）
+     */
+    public static function listFilter( $listsAll, $con = [] ){
+        $dataArr = [];
+        foreach($listsAll as $data){
+            if(Arrays::isConMatch($data, $con)){
+                $dataArr[] = $data;
+            }
+        }
+        return $dataArr;
+    }
+    /**
+     * 列表数据过滤,取单条
+     * @param type $listsAll 二维数组数据
+     * @param type $con     过滤条件（兼容数据库查询）
+     */
+    public static function listFind( $listsAll, $con = [] ){
+        foreach($listsAll as $data){
+            if(Arrays::isConMatch($data, $con)){
+                return $data;
+            }
+        }
+        return [];
     }
 }

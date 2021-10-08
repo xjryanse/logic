@@ -125,4 +125,57 @@ class Arrays
         }
         return $array;
     }
+    /**
+     * 查询条件判断数据是否匹配，查询条件格式兼容数据库查询
+     * @param type $data
+     * @param type $con
+     * @return boolean
+     */
+    public static function isConMatch( $data, $con){
+        //符号替换
+        $signReplace['='] = '==';   // 等号'
+        $signReplace['<>'] = '!=';  //不等号'
+        
+        foreach( $con as $cond){
+            if(!isset($data[$cond[0]])){
+                return false;
+            }            
+            // 等于号和不等于号
+            if( in_array($cond[1],['=','<>'])){
+                //符号替换
+                $sign = Arrays::value($signReplace, $cond[1],$cond[1]);
+                //有一个不匹配，则不匹配
+                if( !eval('return \'' . $data[$cond[0]] . '\' ' . $sign. ' \'' . $cond[2] . '\';')){
+                    return false;
+                }
+            }
+            // in
+            if( $cond[1] == 'in'){
+                $dataArr = is_array($cond[2]) ? $cond[2] : [$cond[2]];
+                if( !in_array($data[$cond[0]], $dataArr)){
+                    return false;
+                }
+            }
+        }
+        //全部匹配，才匹配
+        return true;        
+    }
+    /**
+     * 数组组合
+     * @param type $mainArray
+     * @param type $subArray
+     * @param type $split
+     * @return string
+     */
+    public static function combineArray( $mainArray,$subArray,$split='_'){
+        $arr = [];
+        foreach($mainArray as $value){
+            foreach($subArray as $subValue){
+                // $arr[] = $value ? $value.$split.$subValue : $subValue;
+                $arr[] = $value ? array_merge($value,[$subValue]) : [$subValue];
+            }
+        }
+        return $arr;
+    }
+    
 }

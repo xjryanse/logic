@@ -45,4 +45,27 @@ class Sql
                 . " WHERE ". $whereCondition ." )";
         return $str;
     }
+    /**
+     * 统计结果直接更新（使用内联）
+     * @param type $mainTable       主表
+     * @param type $mainField       主表字段
+     * @param type $dtlTable        明细表
+     * @param type $dtlStaticField  明细表统计字段
+     * @param type $dtlUniField     明细表关联主表id的字段
+     * @param type $dtlCon          明细表查询条件
+     * @param type $staticCate      统计类型：sum;count
+     * @return string
+     */
+    public static function staticUpdate($mainTable, $mainField, $dtlTable, $dtlStaticField, $dtlUniField, $dtlCon = [], $staticCate = 'sum'){
+        // 明细表查询条件
+        $whereCon = ModelQueryCon::conditionParse($dtlCon);
+        $sql    = "update ".$mainTable." as staticMain ";
+        $dtlSql = "select sum(`" . $dtlStaticField . "`) as staticTotal," . $dtlUniField . " from " . $dtlTable;
+        if ( $whereCon ) {
+            $dtlSql .= " where ".$whereCon;
+        }
+        $dtlSql .= " group by ". $dtlUniField ;
+        $sql   .= " inner join (" . $dtlSql . ") as staticDtl set ".$mainField." = staticDtl.staticTotal where staticMain.id = staticDtl.". $dtlUniField;
+        return $sql;
+    }
 }

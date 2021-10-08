@@ -3,7 +3,7 @@ namespace xjryanse\logic;
 
 use think\facade\Cache as TpCache;
 /**
- * 调试复用
+ * 缓存增强
  */
 class Cachex
 {    
@@ -13,8 +13,11 @@ class Cachex
      * @param type $func
      * @return type
      */
-    public static function funcGet($cacheKey , $func)
+    public static function funcGet($cacheKey , $func, $withCompanyId = false)
     {
+        if($withCompanyId){
+            $cacheKey = $cacheKey.'_'.session(SESSION_COMPANY_ID);
+        }
         $cacheKeyValue = TpCache::get($cacheKey);
         if(!$cacheKeyValue){
             //判断数据表是否存在

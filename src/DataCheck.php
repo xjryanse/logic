@@ -23,6 +23,7 @@ class DataCheck
     }
     /**
      * 校验是否json格式
+     * 弃用，使用strings同名方法
      * @param type $data
      */
     public static function isJson( $data )
@@ -33,5 +34,19 @@ class DataCheck
         }
         return json_decode( $data ) ? true : false;
     }
-
+    
+    public static function isEmpty($data){
+        // 空字符串，数组
+        if(empty($data)){
+            return true;
+        }
+        // 空对象
+        if(is_object($data)){
+            //有属性非空，没属性空
+            return get_object_vars($data) ? false : true;
+        }
+        // 不是空
+        return false;
+    }
+    
 }
