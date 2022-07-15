@@ -9,6 +9,8 @@ abstract class Make
     abstract protected function getStub();
     
     abstract protected function getPathName($module,$modelName);
+    
+    public static $appPath = '../app/';
     /**
      * 生成文件
      * @param type $module      模块

@@ -12,16 +12,23 @@ class Pdf {
      * @param type $path
      * @return boolean|string
      */
-    public static function pdfToPngMany($pdf, $path="")
+    public static function toPngMany($pdf, $path="")
     {
         $im = new \Imagick();
         $im->setResolution(120, 120); //设置分辨率 值越大分辨率越高
         $im->setCompressionQuality(100);
         $im->readImage($pdf);
+        Debug::debug('$pdf',$pdf);
+        Debug::debug('$im',$im);
         foreach ($im as $k => $v) {
             $v->setImageFormat('png');
             $v->setImageBackgroundColor('#ffffff');
-            $v = $v->flattenImages();
+            Debug::debug('$v',$v);
+            //20220119增
+            $v->setImageAlphaChannel(\Imagick::ALPHACHANNEL_REMOVE); 
+            $v->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN); 
+            //20220119删
+            //$v = $v->flattenImages();
             if(!$path){
                 $path = "images/".date('Ymd').'/';
             }
@@ -38,7 +45,7 @@ class Pdf {
      * @param type $path
      * @throws \xjryanse\logic\Exception
      */
-    public static function pdfToPngOne($pdf, $path=""){
+    public static function toPngOne($pdf, $path=""){
         try {
             $im = new \Imagick();
             $im->setCompressionQuality(100);

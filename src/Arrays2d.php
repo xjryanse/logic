@@ -2,6 +2,9 @@
 namespace xjryanse\logic;
 
 use xjryanse\logic\Arrays;
+
+use xjryanse\system\service\SystemFileService;
+use think\Db;
 /**
  * 二维数组处理逻辑
  */
@@ -162,5 +165,54 @@ class Arrays2d
             }
         }
         return [];
+    }
+    /**
+     * 排序
+     */
+    public static function sort( $array ,$field){
+        $arr_keys = [];
+        foreach ($array as $items) {
+            $arr_keys[] = $items[$field];
+        }
+        array_multisort($arr_keys, SORT_ASC, SORT_NUMERIC, $array);
+        return $array;
+    }
+    /**
+     * 求和
+     */
+    public static function sum( $array, $field){
+        return array_sum(array_column($array, $field));
+    }
+    
+    /***以下部分有耦合SystemFileService类，和db方法，是否进行拆分比较科学？？20220305******************************************************************/
+    /**
+     * 二维数组，图像字段，id转数组
+     */
+    public static function picFieldCov(&$data,$picFields = []){
+        if(!$picFields){
+            return $data;
+        }
+        $picIds = [];
+        foreach($picFields as &$picField){
+            $picIds = array_merge($picIds, array_column($data,$picField));
+        }
+        Debug::debug('picFieldCov的$picIds',$picIds);
+        if(array_unique($picIds)){
+            //根据图像id，提取已有的图像列表
+            $conPic[] = ['id','in', array_unique($picIds)];
+            //$fileTable = SystemFileService::mainModel()->getTable();
+            $picObjs = SystemFileService::mainModel()->where( $conPic )->field('id,file_type,file_path,file_path as rawPath')->select();
+            $picArr = $picObjs ? $picObjs->toArray() : [];
+            $picObj = self::fieldSetKey($picArr, 'id');
+            //拼接图像
+            foreach($data as &$v){
+                foreach($picFields as $picField){
+                    // TODO [ 20220518 ] [8]未定义数组索引: icon_pic[/www/wwwroot/tenancy.xiesemi.cn/vendor/xjryanse/logic/src/Arrays2d.php:201]
+                    $v[$picField] = isset($picObj[$v[$picField]]) ? $picObj[$v[$picField]] : [];
+                }
+            }            
+        }
+
+        return $data;
     }
 }

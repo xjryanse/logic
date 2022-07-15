@@ -4,6 +4,7 @@ namespace xjryanse\logic;
 use think\Db;
 use think\facade\Cache;
 use xjryanse\logic\Cachex;
+use Exception;
 /**
  * 数据库操作类库
  */
@@ -31,21 +32,42 @@ class DbOperate
     }
     
     /**
-     * 获取表全部字段
-     * @param type $tableName   表名
-     * @param type $columnName  字段名
+     * 用于替代show columns from 的sql语句
      */
-    public static function columns( $tableName  )
+    public static function columns($tableName){
+        $cacheKey = __CLASS__.__METHOD__;
+        return Cachex::funcGet( $cacheKey.'_'.$tableName, function() use ($tableName){
+            $database     = config('database.database');
+            $sql = "SELECT
+                    table_name,
+                    column_name AS Field,
+                    column_type AS Type,
+                    is_nullable AS `Null`,
+                    column_key AS `Key`,
+                    column_default AS `Default`,
+                    extra as Extra ,
+                    COLUMN_COMMENT
+                FROM
+                    information_schema.`COLUMNS` 
+                WHERE
+                    table_schema = '".$database."' and TABLE_NAME = '".$tableName."'";
+            $tableColumn = Db::query($sql);
+//
+//            $con[] = ['TABLE_NAME','=',$tableName];
+//            $tableColumn = Arrays2d::listFilter($res, $con);
+
+            return $tableColumn;
+        });
+    }
+    
+    /**
+     * 数据表是否存在某字段
+     */
+    public static function hasField($tableName, $fieldName )
     {
-        $cacheKey = __CLASS__.__METHOD__.$tableName;
-        $columns = Cache::get($cacheKey);
-        if(!$columns){
-            $sql = "select * from information_schema.COLUMNS "
-                    . "WHERE table_name ='" . $tableName . "'";
-            $columns = Db::query( $sql );
-            Cache::set($cacheKey,$columns);
-        }
-        return $columns;        
+        $tableColumns   = self::columns($tableName);
+        $fields    = array_column( $tableColumns,'Field');
+        return in_array($fieldName, $fields);
     }
     /**
      * 实际字段：排除虚拟字段
@@ -55,8 +77,8 @@ class DbOperate
         $columns    = self::columns($tableName);
         $fieldArr   = [];
         foreach($columns as $key=>$value){
-            if($value['EXTRA'] != 'VIRTUAL GENERATED'){
-                $fieldArr[] = $value['COLUMN_NAME'];
+            if($value['Extra'] != 'VIRTUAL GENERATED'){
+                $fieldArr[] = $value['Field'];
             }
         }
         return $fieldArr;
@@ -144,9 +166,10 @@ class DbOperate
             if(self::getService( $tableName )::mainModel()->hasField($vv)){
                 $fieldStrs[] = $vv;
             }
-        }        
-        $fieldStr = implode(',',$fieldStrs);
-        
+        }
+        //$fieldStr = implode(',',$fieldStrs);
+        $fieldStr = '`'.implode('`,`', $fieldStrs).'`';        
+
         $dataStr = '';
         foreach( $data as $key=>$value){
             $resVal = [];
@@ -185,8 +208,10 @@ class DbOperate
     public static function dataFilter( $tableName,array $data)
     {
         $tableColumns   = self::columns($tableName);
-        $tableFields    = array_column( $tableColumns,'COLUMN_NAME');        
-        $res = Arrays::getByKeys($data, $tableFields);
+        Debug::debug('$tableColumns', $tableColumns);
+        $tableFields    = array_column( $tableColumns,'Field');
+        Debug::debug('$tableFields', $tableFields);
+        $res            = Arrays::getByKeys($data, $tableFields);
         return $res;
     }
     /**
@@ -200,9 +225,9 @@ class DbOperate
     public static function fieldsExceptByTable( $table,$exceptTable)
     {
         $tableColumns   = self::columns($table);
-        $tableFields    = array_column( $tableColumns,'COLUMN_NAME');
+        $tableFields    = array_column( $tableColumns,'Field');
         $exceptColumns  = self::columns($exceptTable);
-        $exceptFields   = array_column( $exceptColumns,'COLUMN_NAME');
+        $exceptFields   = array_column( $exceptColumns,'Field');
         return array_diff($tableFields, $exceptFields);
     }
     /**
@@ -219,5 +244,95 @@ class DbOperate
         }
         return implode( ',',$fields );
     }
+    
+    /*
+     * 拼接求和字段
+     */
+    public static function sumFieldStr($fieldsArr){
+        $arr = [];
+        foreach($fieldsArr as $v){
+            $arr[] = 'round(sum('.$v.')) as '.$v;
+        }
+        return implode(',',$arr);
+    }
+    
+    /**
+     * 高效率的pdo查询，一般用于大数据量导出
+     */
+    public static function pdoQuery($sql){
+        //TODO，目前只有TP框架可用
+        $dbInfo     = config('database.');
+        //新建PDO连接
+        $connectStr = 'mysql:host='.$dbInfo['hostname'].';port='.$dbInfo['hostport'].';dbname='.$dbInfo['database'];
+        
+        $pdo        = new \PDO( $connectStr , $dbInfo['username'], $dbInfo['password']);
+        $pdo->setAttribute(\PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
+        //防中文乱码
+//        $pdo->query("set names 'utf8'");
+        $pdo->query("set names 'ANSI'");
+
+        $rows = $pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+
+        return $rows;
+    }
+    /**
+     * 应在控制器层最外循环结尾调用，并加事务
+     * 如何解决锁的问题？？
+     */
+    public static function dealGlobal(){
+        Db::startTrans();
+            global $glSaveData, $glUpdateData, $glDeleteData, $glSqlQuery;
+            //【1】保存的数据
+            foreach($glSaveData as $tableName=>$dataArr){
+                //20220621;解决批量字段不同步bug                
+                $saveArr = [];
+                foreach($dataArr as $id=>$data){
+                    $keys = array_keys($data);
+                    sort($keys);
+                    ksort($data);
+                    $keyStr = md5(implode(',', $keys));
+                    $saveArr[$keyStr][] = $data;
+                }
+                // 20220621
+                foreach($saveArr as $k=>$arr){
+                    $sql = self::saveAllSql($tableName, array_values($arr));
+                    Db::query($sql);
+                }
+            }
+            //【2】更新的数据
+            foreach($glUpdateData as $tableName=>$dataArr){
+                foreach($dataArr as $id=>$data){
+                    Db::table($tableName)->where('id',$id)->update($data);
+                }
+            }
+            //【3】删除的数据
+            foreach($glDeleteData as $tableName=>$ids){
+                $con = [];
+                $con[] = ['id','in', array_unique($ids)];
+                Db::table($tableName)->where($con)->delete();
+            }
+            //【4】执行自定义sql
+            $glSqlQuery = array_unique($glSqlQuery);
+            foreach($glSqlQuery as $sql){
+                Db::query($sql);
+            }
             
+//        dump('$glSaveData');
+//        dump($glSaveData);
+//        dump('$glUpdateData');
+//        dump($glUpdateData);
+//        dump('$glDeleteData');
+//        dump($glDeleteData);
+        // throw new Exception('测试');
+        Db::commit();
+        return true;
+    }
+    /**
+     * 是否在全局删除中
+     */
+    public static function isGlobalDelete($tableName,$id){
+        global $glDeleteData;
+        $delDatas = Arrays::value($glDeleteData, $tableName, []);
+        return in_array($id, $delDatas);
+    }
 }

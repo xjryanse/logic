@@ -13,7 +13,7 @@ class Model extends Make
     
     protected function getPathName($module,$modelName)
     {
-        return Env::get('app_path') . $module. DIRECTORY_SEPARATOR. 'model' . DIRECTORY_SEPARATOR. $modelName. '.php';
+        return self::$appPath . $module. DIRECTORY_SEPARATOR. 'model' . DIRECTORY_SEPARATOR. $modelName. '.php';
     }
     
 }

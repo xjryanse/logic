@@ -14,7 +14,7 @@ class ModelBase extends Make
     
     protected function getPathName($module,$modelName)
     {
-        return Env::get('app_path') . $module. DIRECTORY_SEPARATOR. 'model' . DIRECTORY_SEPARATOR. 'Base.php';
+        return self::$appPath . $module. DIRECTORY_SEPARATOR. 'model' . DIRECTORY_SEPARATOR. 'Base.php';
     }
     
 }

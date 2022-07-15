@@ -170,7 +170,7 @@ class ModelQueryCon
      * @return type
      */
     private static function preg($str) {
-        return preg_replace("/\+|\`|\*|\-|\$|\#|\^|\!|\@|\%|\&|\~|\[|\]|\,|\'|\s|/", "", $str);
+        return preg_replace("/\+|\`|\*|\$|\#|\^|\!|\@|\%|\&|\~|\[|\]|\,|\'|\s|/", "", $str);
     }
 
     /**

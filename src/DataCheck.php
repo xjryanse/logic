@@ -49,4 +49,28 @@ class DataCheck
         return false;
     }
     
+    
+    /***********************************/
+    
+    /**
+     * 20220531生成校验参数，适用于无法控制的场景
+     */
+    public static function authParamGenerate(){
+        $time = time();
+        $mode = $time % 5;
+        $timeCov = base_convert($time + 7 * $mode,10,32);
+        return $time.$timeCov;
+    }
+    /**
+     * 验证校验参数是否合法（合法参数由上方authParamGenerate生成）
+     * @param type $authStr
+     * @return type
+     */
+    public static function authParamCheck($authStr){
+        $time = substr ( $authStr , 0, 10 );
+        $mode = $time % 5;
+        $timeCov = substr ( $authStr , 10 );
+        $timeCovDescent = base_convert($timeCov,32,10) - 7 * $mode;
+        return $time == $timeCovDescent;
+    }
 }

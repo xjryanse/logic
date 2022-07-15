@@ -65,4 +65,12 @@ class Prize {
         }
         return $outputCharacters."整";
     }
+    /**
+     * 圆整
+     * @param type $prize
+     * @return type
+     */
+    public static function clearZero($prize){
+        return $prize ? floatval($prize) : 0;
+    }
 }

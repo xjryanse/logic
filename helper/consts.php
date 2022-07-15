@@ -34,11 +34,13 @@ const XJRYANSE_OP_FAIL      = 'fail';   //已失败
  * session 名称常量
  */
 const SESSION_SOURCE        =   'scopeSource';          //全局来源：admin：后台：wePub；微信公众号；webPc
+const SESSION_DEPT_ID       =   'scopeDeptId';          //全局部门id
 const SESSION_APP_ID        =   'scopeAppId';           //全局APPID
 const SESSION_COMPANY_ID    =   'scopeCompanyId';       //全局公司id
 const SESSION_CUSTOMER_ID   =   'scopeCustomerId';      //全局客户id
 const SESSION_COMPANY_KEY   =   'scopeCompanyKey';      //全局公司key
 const SESSION_USER_ID       =   'scopeUserId';          //全局用户id
+const SESSION_USER_INFO     =   'scopeUserInfo';        //全局用户信息
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 const SESSION_OPENID        =   'myOpenid';             //session openid的名称
 const SESSION_DIRECT_AFTER  =   'directAfter';          // 直接执行后续的触发动作,开启后一般需要及时关闭
@@ -122,3 +124,53 @@ const ACCOUNT_MONEY  = 'money';
 const MASTER_DATA = true;
 //从从库读数据
 const SLAVE_DATA = false;
+
+// 【小程序状态】
+// 小程序体验版待提交
+const WEAPP_TO_COMMIT   = 0;
+// 小程序待审核
+const WEAPP_TO_AUDIT    = 1;
+// 已通过
+const WEAPP_PASS        = 2;
+// 已发布
+const WEAPP_PUBLISHED   = 3;
+// 审核不通过
+const WEAPP_REJECT      = 4;
+
+//【财务账户类型】
+// 集团内部流转账户
+const ACCOUNT_TYPE_INNER = 'inner';
+
+//【订单类型】
+// 包车订单流转-前向
+const ORDER_TYPE_BAO = 'bao';
+// 包车订单流转-前向
+const ORDER_TYPE_BAO_PRE = 'baoPre';
+// 包车订单流转-后向
+const ORDER_TYPE_BAO_DELIVER = 'baoDeliver';
+// 员工费用报销
+const ORDER_TYPE_STAFF_FEE = 'staffFee';
+
+
+//20220613费用统计的费用类型
+const MONEY_ST_ORDER_PRIZE = 'orderPrize';
+//已收
+const MONEY_ST_PAY_PRIZE = 'payPrize';
+//未收
+const MONEY_ST_REMAIN_PRIZE = 'remainPrize';
+//已付
+const MONEY_ST_OUTCOME_PRIZE = 'outcomePrize';
+//未付
+const MONEY_ST_REMAIN_OUTCOME_PRIZE = 'remainOutcomePrize';
+
+//员工生日模板消息提醒
+const ABI_MANAGE_BIRTH_NOTICE = 'manageBirthNotice';
+
+//20220620递归处理：前向
+//方向key
+const DIRECTION = 'DIRECTION';
+//前向值
+const DIRECT_PRE = 'pre';
+//后向值
+const DIRECT_AFT = 'after';
+

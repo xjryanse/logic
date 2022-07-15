@@ -49,4 +49,19 @@ class Url
         }
         return $urlRes;
     }
+    /**
+     * 空格转%20；中文转%
+     * @param type $url
+     * @return type
+     */
+    public static function encodeRaw($url){
+        $uri = '';
+        $cs = unpack('C*', $url);
+        $len = count($cs);
+        for ($i=1; $i<=$len; $i++) {
+          $uri .= $cs[$i] > 127 ? '%'.strtoupper(dechex($cs[$i])) : $url{$i-1};
+        }
+        return $uri;
+    }
+    
 }

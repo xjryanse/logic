@@ -14,7 +14,7 @@ class ServiceBase extends Make
     
     protected function getPathName($module,$modelName)
     {
-        return Env::get('app_path') . $module. DIRECTORY_SEPARATOR. 'service' . DIRECTORY_SEPARATOR. 'Base.php';
+        return self::$appPath . $module. DIRECTORY_SEPARATOR. 'service' . DIRECTORY_SEPARATOR. 'Base.php';
     }
     
 }

@@ -9,9 +9,9 @@ class Arrays
     /**
      * 数组取值
      */
-    public static function value( $array , string $key,$default='' )
+    public static function value( $array , $key,$default='' )
     {
-        return isset($array[ $key ]) ? $array[ $key ] : $default;
+        return $array && $key && isset($array[ $key ]) ? $array[ $key ] : $default;
     }
     
     /**
@@ -161,6 +161,17 @@ class Arrays
         return true;        
     }
     /**
+     * 数组是否空
+     */
+    public static function isEmpty($array){
+        if(!$array){
+            return true;
+        }
+        //情况2：只有一个null值
+        $arrUniq = array_unique($array);
+        return count($arrUniq) == 1 && is_null($arrUniq[0]);
+    }
+    /**
      * 数组组合
      * @param type $mainArray
      * @param type $subArray
@@ -178,4 +189,32 @@ class Arrays
         return $arr;
     }
     
+    public static function md5($array){
+        return md5(json_encode($array));
+    }
+    /**
+     * 过滤空数据
+     * @param type $param       参数
+     * @param type $exceptKeys  不去除的key
+     * @return type
+     */
+    public static function unsetEmpty( &$param ,$exceptKeys = ['id']){
+        //20211106 解决报错 Invalid argument supplied for foreach()
+        if(DataCheck::isEmpty($param)){
+            return [];
+        }
+        foreach($param as $k=>&$v){
+            if(!$v && !in_array($k, $exceptKeys)){
+                unset($param[$k]);
+            }
+//            if(!is_array($v) && !strlen($v)){
+//                unset($param[$k]);
+//            }
+            //递归
+            if(is_array($v)){
+                self::unsetEmpty( $v);
+            }
+        }
+        return $param;
+    }
 }

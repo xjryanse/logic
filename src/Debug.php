@@ -22,6 +22,7 @@ class Debug
      */
     public static function isDebug()
     {
+        // return true;
         $debug = Request::param('debug','');
         return $debug == 'xjryanse';
     }
@@ -31,5 +32,13 @@ class Debug
     public static function testThrow()
     {
         throw new Exception('测试中……');
+    }
+    /**
+     * 调试模式下输出
+     */
+    public static function dump($data){
+        if(Request::ip() == '223.104.45.233'){
+            dump($data);
+        }
     }
 }
