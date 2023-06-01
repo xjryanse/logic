@@ -69,7 +69,7 @@ class Sql
         */
         $dtlSql = "select 
                     ifnull(sum( b.`".$dtlStaticField."` ),0) AS staticTotal,
-                    main.id as ".$dtlUniField." from ".$mainTable." as main left join ".$dtlTable." as b on main.id = b.".$dtlUniField; " where main.id = '5265463276707840000' group by main.id";
+                    main.id as ".$dtlUniField." from ".$mainTable." as main left join ".$dtlTable." as b on main.id = b.".$dtlUniField; 
         if ( $whereCon ) {
             $dtlSql .= " where ".$whereCon;
         }        

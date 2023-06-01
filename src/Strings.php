@@ -105,12 +105,25 @@ class Strings
     }
     
     /**
+     * 是否19位雪花算法id
+     */
+    public static function isSnowId($string){
+        return is_numeric($string) && mb_strlen($string) == 19;
+    }    
+    /**
      * 保留几位，剩下的……
      */
     public static function keepLength($str,$length)
     {
         return mb_strlen($str) > $length ? mb_substr($str, 0,$length) .'…' : $str ;
     }
+    /**
+     * 保持长度，前补0
+     */
+    public static function preKeepLength($str,$length,$preChar='0'){
+        return str_pad($str, $length, $preChar, STR_PAD_LEFT);
+    }
+    
     
     /**
      * 字符串是否以某字符串开始
@@ -172,5 +185,101 @@ class Strings
      */
     public static function uncamelize($camelCaps,$separator='_'){
         return strtolower(preg_replace('/([a-z])([A-Z])/', "$1" . $separator . "$2", $camelCaps));
+    }
+    /**
+     * 20220717超出部分小数点隐藏
+     */
+    public static function hideMore($string,$length = 20){
+        if(mb_strlen($string) > $length){
+            $string = substr($string,0,$length).'…';
+        }
+        return $string;
+    }
+    
+    /**
+     * 20221111：unicode解码
+     * @param type $str
+     * @return type
+     */
+    public static function unicodeDecode($str) {
+        return preg_replace_callback("#\\\u([0-9a-f]{4})#i",
+                function ($r) {
+                    return iconv('UCS-2BE', 'UTF-8', pack('H4', $r[1]));
+                },
+            $str);
+    }
+    /**
+     * 生成随机长度的字符串
+     * @param type $length
+     * @return type
+     */
+    public static function rand($length = 4) {
+        //从ASCII码中获取
+        $captcha = '';
+        //随机取：大写、小写、数字
+        for ($i = 0; $i < $length; $i++) {
+            //随机确定是字母还是数字
+            switch (mt_rand(1, 3)) {
+                case 1:                //数字：49-57分别代表1-9
+                    $captcha .= chr(mt_rand(49, 57));
+                    break;
+                case 2:                //小写字母:a-z
+                    $captcha .= chr(mt_rand(65, 90));
+                    break;
+                case 3:                //大写字母:A-Z
+                    $captcha .= chr(mt_rand(97, 122));
+                    break;
+            }
+        }
+        //返回
+        return $captcha;
+    }
+
+    
+    /**
+    * 20230330将字符串转换成二进制
+    * @param type $str
+    * @return type
+    */
+    public static function strToBin($str){
+        //1.列出每个字符
+        $arr = preg_split('/(?<!^)(?!$)/u', $str);
+        //2.unpack字符
+        foreach($arr as &$v){
+            $temp = unpack('H*', $v);
+            $v = base_convert($temp[1], 16, 2);
+            unset($temp);
+        }
+        return join(' ',$arr);
+    }
+    /**
+    * 将二进制转换成字符串
+    * @param type $str
+    * @return type
+    */
+    public static function binToStr($str){
+        $arr = explode(' ', $str);
+        foreach($arr as &$v){
+            $v = pack("H".strlen(base_convert($v, 2, 16)), base_convert($v, 2, 16));
+        }
+        return join('', $arr);
+    }
+    
+    /**
+     * 20230417:&连接转键值对数组
+     * @param type $string
+     * @param type $explode
+     * @return type
+     */
+    public static function equalsToKeyValue( $string,$explode='&' )
+    {
+        $arr = explode( $explode ,$string );
+        foreach($arr as $v) {
+            $t = explode('=',$v);
+            $key = $t[0];
+            unset($t[0]);//移除键
+            $newArr[$key] = implode('=',$t);    //防止数据中有等号出bug
+        }
+        return $newArr;
     }
 }

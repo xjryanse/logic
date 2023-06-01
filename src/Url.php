@@ -59,7 +59,7 @@ class Url
         $cs = unpack('C*', $url);
         $len = count($cs);
         for ($i=1; $i<=$len; $i++) {
-          $uri .= $cs[$i] > 127 ? '%'.strtoupper(dechex($cs[$i])) : $url{$i-1};
+          $uri .= $cs[$i] > 127 ? '%'.strtoupper(dechex($cs[$i])) : substr($url,$i-1,1);
         }
         return $uri;
     }

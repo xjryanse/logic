@@ -81,4 +81,11 @@ class SnowFlake
         */    
         return bindec(substr(decbin($particle),0,41)) - self::max41bit + self::EPOCH;    
     }
+    /*
+     * 20221003:获取时间戳
+     */
+    public static function getTimestamp($particle){
+        $microTime = self::timeFromParticle($particle);   
+        return intval($microTime / 1000);
+    }
 }

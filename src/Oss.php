@@ -40,5 +40,17 @@ class Oss
     public function getObject($fileName){
         return $this->ossClient->getObject($this->bucket,$fileName);
     }
+    
+    public function doesBucketExist($bucketName){
+        return $this->ossClient->doesBucketExist($bucketName);
+    }
+
+    public function listBuckets(){
+        return $this->ossClient->listBuckets();
+    }
+    
+    public function signUrl($fileName){
+        return $this->ossClient->signUrl($this->bucket,$fileName);
+    }
 
 }

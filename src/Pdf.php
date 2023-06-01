@@ -1,7 +1,7 @@
 <?php
 
 namespace xjryanse\logic;
-
+use think\Container;
 /**
  * Pdf处理
  */
@@ -32,6 +32,13 @@ class Pdf {
             if(!$path){
                 $path = "images/".date('Ymd').'/';
             }
+            //20220811:增加创建文件夹
+            $basePath = Container::get('app')->getRootPath();
+            $pathName = $basePath.'public'.DIRECTORY_SEPARATOR.'images'.DIRECTORY_SEPARATOR.date('Ymd').DIRECTORY_SEPARATOR;
+            if (!is_dir($pathName)) {
+                mkdir($pathName, 0777, true);
+            }
+            
             $fileName = $path . md5($k . time()) . '.png';
             if ($v->writeImage($fileName) == true) {
                 $return[] = $fileName;

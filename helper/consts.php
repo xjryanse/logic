@@ -44,7 +44,7 @@ const SESSION_USER_INFO     =   'scopeUserInfo';        //全局用户信息
 const SESSION_WEPUB_CALLBACK = "wePubCallBackUrl";      //微信公众号授权回调链接
 const SESSION_OPENID        =   'myOpenid';             //session openid的名称
 const SESSION_DIRECT_AFTER  =   'directAfter';          // 直接执行后续的触发动作,开启后一般需要及时关闭
-
+// 20230517:废弃，使用请求头 source 字段
 const SOURCE_WEPUB = 'wePub'  ;   //微信公众号
 const SOURCE_WEAPP = 'weApp'  ;   //微信小程序
 const SOURCE_ADMIN = 'admin'  ;   //管理后台
@@ -109,6 +109,8 @@ const ORDER_CLOSE      = 'close';   //已关闭
 const ORDER_FINISH_NODE                     = "orderFinish";                //【公用节点】订单完成
 const ORDER_CLOSE_NODE                      = "orderClose";                 //【公用节点】交易关闭
 
+// 事项常量：
+const THING_BAO_APPLY   = 'baoApply';
 
 #tpl_table=temp_goods_prize_key&tpl_main_key=main_key&tpl_group_key=belong_role&tpl_data_key=prize_key&to_table=ydzb_goods_prize&to_field=prize&main_field=goods_id&main_data_key=prize_key
 
@@ -165,6 +167,12 @@ const MONEY_ST_REMAIN_OUTCOME_PRIZE = 'remainOutcomePrize';
 
 //员工生日模板消息提醒
 const ABI_MANAGE_BIRTH_NOTICE = 'manageBirthNotice';
+//司机发车通知客户
+const ABI_BUS_START_NOTICE_CUSTOMER = 'busStartNoticeCustomer';
+//发车前自动通知客户
+const ABI_BAO_PRE_PASS_AUTO_NOTICE_CUSTOMER = 'baoPrePassAutoNoticeCustomer';
+//发车前自动通知客户
+const ABI_PIN_PRE_PASS_AUTO_NOTICE_CUSTOMER = 'pinPrePassAutoNoticeCustomer';
 
 //20220620递归处理：前向
 //方向key
@@ -174,3 +182,6 @@ const DIRECT_PRE = 'pre';
 //后向值
 const DIRECT_AFT = 'after';
 
+
+// 20230531：系统钩子名称
+const TRIGGER_AFTER_ORDER_PAY = 'afterOrderPay';

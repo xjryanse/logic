@@ -9,6 +9,15 @@ class DataCheck
 {
     /**
      * 必填
+     * @param type $data
+     * @param type $keys
+     * @param type $notices
+
+        $mustKeys                   = ['plan_start_time','plan_finish_time'];
+        $notice['plan_start_time']  = '开始用车时间必须';
+        $notice['plan_finish_time'] = '结束用车时间必须';
+
+     * @throws Exception
      */
     public static function must( $data, $keys, $notices=[] )
     {
@@ -18,6 +27,38 @@ class DataCheck
                 throw new Exception( isset($notices[ $key ]) 
                         ? $notices[ $key ] 
                         : $key.'必须' );
+            }
+        }
+    }
+    /**
+     * 20230516：校验是否有值
+     * @param type $data
+     * @param type $rules
+     * @throws Exception
+     */
+    public static function hasValue ($data, $rules){
+        // 规则数组
+        foreach ($rules as $key=>$message){
+            if(Arrays::value($data, $key)){
+                throw new Exception( $message );
+            }
+        }
+    }
+    /**
+     * 验证参数是否指定值
+     * @param type $data    []
+     * @param type $rules    
+            key => [
+                '1'=>'不可删'
+            ];
+     */
+    public static function valueMatch($data, $rules){
+        // 规则数组
+        foreach ($rules as $key=>$rule){
+            foreach($rule as $value=>$message){
+                if (Arrays::value($data, $key) == $value) {
+                    throw new Exception( $message );
+                }
             }
         }
     }

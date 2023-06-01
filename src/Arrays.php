@@ -11,7 +11,7 @@ class Arrays
      */
     public static function value( $array , $key,$default='' )
     {
-        return $array && $key && isset($array[ $key ]) ? $array[ $key ] : $default;
+        return $array && isset($array[ $key ]) ? $array[ $key ] : $default;
     }
     
     /**
@@ -25,6 +25,18 @@ class Arrays
         $match = array_fill_keys($keys, "");
         //比较两个（或更多个）数组的键名 ，并返回交集。
         return array_intersect_key( $array , $match);
+    }
+    /**
+     * 2022-12-17：隐藏某些key
+     * @param array $array
+     * @param array $keys
+     * @return array
+     */
+    public static function hideKeys(array $array,array $keys )
+    {
+        $match = array_fill_keys($keys, "");
+        //比较两个（或更多个）数组的键名 ，并返回差集。
+        return array_diff_key( $array , $match);
     }
     /**
      * 移除指定键
@@ -137,25 +149,46 @@ class Arrays
         $signReplace['<>'] = '!=';  //不等号'
         
         foreach( $con as $cond){
-            if(!isset($data[$cond[0]])){
+            $key    = $cond[0];
+            $sign   = $cond[1];
+            $value  = $cond[2];
+            
+            if(!isset($data[$key])){
                 return false;
-            }            
+            }
             // 等于号和不等于号
-            if( in_array($cond[1],['=','<>'])){
+            if( in_array($sign,['=','<>','>','<','>=','<='])){
                 //符号替换
-                $sign = Arrays::value($signReplace, $cond[1],$cond[1]);
+                $signN = Arrays::value($signReplace, $sign, $sign);
                 //有一个不匹配，则不匹配
-                if( !eval('return \'' . $data[$cond[0]] . '\' ' . $sign. ' \'' . $cond[2] . '\';')){
+                $evalStr = 'return \'' . $data[$key] . '\' ' . $signN. ' \'' . $value . '\';';
+                if( !eval($evalStr)){
                     return false;
                 }
             }
             // in
-            if( $cond[1] == 'in'){
-                $dataArr = is_array($cond[2]) ? $cond[2] : [$cond[2]];
-                if( !in_array($data[$cond[0]], $dataArr)){
+            if( $sign == 'in'){
+                $dataArr = is_array($value) ? $value : [$value];
+                if( !in_array($data[$key], $dataArr)){
                     return false;
                 }
             }
+            // 2022-12-18:like
+            if( $sign == 'like'){
+                $searchStr  = str_replace('%', '',$value);
+                $reg = '';
+                if(!Strings::isStartWith($value, '%')){
+                    $reg = '^';
+                }
+                $reg .= $searchStr;
+                if(!Strings::isEndWith($value, '%')){
+                    $reg .= '$';
+                }
+                // 2022-12-18:大小写不敏感
+                if(!preg_match('/'.$reg.'/i', $data[$key])){
+                    return false;
+                }
+            }            
         }
         //全部匹配，才匹配
         return true;        
@@ -204,7 +237,8 @@ class Arrays
             return [];
         }
         foreach($param as $k=>&$v){
-            if(!$v && !in_array($k, $exceptKeys)){
+            // 值为空且（索引是数值，或不在排除key中）
+            if(!$v && (is_numeric($k) || !in_array($k, $exceptKeys))){
                 unset($param[$k]);
             }
 //            if(!is_array($v) && !strlen($v)){
@@ -217,4 +251,62 @@ class Arrays
         }
         return $param;
     }
+    /**
+     * 20221111转XML字串
+     */
+    public static function toXml($data,$withFix = true){
+        $string = '';
+        foreach($data as $k=>$v){
+            $string .= '<'.$k.'>';
+            $string .= $v;
+            $string .= '</'.$k.'>';
+        }
+        return $withFix 
+                ? '<xml>'. $string. '</xml>'
+                : $string;
+    }
+    /**
+     * 获取差异数组
+     * [变更前，变更后]
+     */
+    public static function diffArr($preArr, $afterArr ){
+        $diffArr = [];
+        foreach($afterArr as $k=>$v){
+            foreach($preArr as $kp=>$vp){
+                if($kp == $k && $v != $vp){
+                    $diffArr[$kp] = [$vp, $v];
+                }
+            }
+        }
+        return $diffArr;
+    }
+    /**
+     * 20230203:解决array_sum小数点不准
+     */
+    public static function sum($array){
+        $arrCov = [];
+        foreach($array as $v){
+            $arrCov[] = $v * 1000; 
+        }
+        return array_sum($arrCov) / 1000;
+    }
+    /**
+     * 如果所给定的值是空的，用$replace的值替代
+     * @param type $data
+     * @param type $key
+     * @param type $replace
+     */
+    public static function ifEmptyReplace(&$data,$key,$replace){
+        if(!Arrays::value($data, $key)){
+            $data[$key] = $replace;
+        }
+    }
+    /**
+     * 20230519：提取数组的最后一个值
+     */
+    public static function last($array){
+        return array_pop($array);
+    }
+    
+    
 }

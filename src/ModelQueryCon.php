@@ -28,11 +28,11 @@ class ModelQueryCon
     /**
      * 条件拆解成and 连接
      */
-    public static function conditionParse( $con ,$alias = "")
+    public static function conditionParse( $con ,$alias = "",$keyReplace = [])
     {
         //条件参数的形式：$con[] = ['aa','=','bb'];
         $condition = [];
-        foreach($con as $v){
+        foreach($con as $v){            
             $tmpStr = "";
             if($v[1] == "in"){
                 if(is_string($v[2])){
@@ -49,8 +49,13 @@ class ModelQueryCon
                 $temp[1] = $alias .'.'. $temp[1];
                 $v[0] = implode('(',$temp);
             } else {
-                //常规的添加
-                $v[0]           = $alias ? $alias .'.'. $v[0] :$v[0];
+                $keyReplaceStr = Arrays::value($keyReplace, $v[0]) ? : '';
+                //20221010常规的添加
+                if($keyReplaceStr){
+                    $v[0] = $keyReplaceStr;
+                } else {
+                    $v[0]           = $alias ? $alias .'.'. $v[0] :$v[0];
+                }
             }
             
             $condition[]    = implode(' ',$v);
@@ -230,5 +235,22 @@ class ModelQueryCon
             }
         }
         return $con;
+    }
+    /**
+     * 20230322：从查询条件中，反向提取值
+     * 一般用于提取年份；月份等
+     * 注：仅适用于三段查询条件
+     * @param type $con     查询条件
+     * @param type $key     yearmonth,date等
+     * @return type
+     */
+    public static function parseValue($con, $key){
+        $yearmonthVal = '';
+        foreach($con as $v){
+            if($v[0] == $key){
+                $yearmonthVal = $v[2];
+            }
+        }
+        return $yearmonthVal;
     }
 }

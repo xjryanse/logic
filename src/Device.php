@@ -34,4 +34,11 @@ class Device
         }
         return $type;
     }
+    /**
+     * 是否ipad
+     */
+    public static function isIpad(){
+        $agent = strtolower($_SERVER['HTTP_USER_AGENT']);
+        return strpos($agent, 'ipad');
+    }
 }

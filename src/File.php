@@ -52,4 +52,23 @@ class File {
     public static function isExist($filePath){
         return file_exists($filePath);
     }
+    /**
+     * 20221111下载远程文件存入本地
+     */
+    public static function saveUrlFile($url,$savePath){
+        if(file_exists($savePath)){
+            return false;
+        }
+        try{
+            $file       = file_get_contents( $url );
+            $dirPath    = dirname($savePath);
+            if (!file_exists($dirPath) && !mkdir($dirPath, 0777, true)) {
+                throw new Exception('创建目录'. $dirPath .'失败');
+            }
+            //写入本地服务器
+            return file_put_contents( $savePath, $file );
+        } catch (\Exception $e){
+            return false;
+        }
+    }
 }

@@ -31,8 +31,8 @@ class FileMake
 
         //拆成数组
         $arr = explode('_',$tableName);
-        //提取模块名
-        $module     = $arr[1];
+        //提取模块名(20221113视图取2；非视图取1)
+        $module     = $arr[1] == 'view' ? $arr[2] : $arr[1];
         array_shift($arr);
         //提取模型名
         $modelName = '';
