@@ -64,6 +64,21 @@ class Strings
             return 0;   //不包含字母
         }
     }
+	
+	/**
+     * 20230529:是否包含数字
+     * @param type $str
+     * @return int
+     */
+    public static function hasNumberChar( $str )
+    {
+        $preg2 = '/[0-9]/';
+        if( preg_match($preg2,$str) ){
+            return 1;   //包含字母
+        } else {
+            return 0;   //不包含字母
+        }
+    }
     
     public static function toUtf8 ($str = '') 
     {
