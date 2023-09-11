@@ -1,6 +1,7 @@
 <?php
 namespace xjryanse\logic;
 
+use Exception;
 /**
  * 一维数组处理逻辑
  */
@@ -20,8 +21,12 @@ class Arrays
      * @param type $keys    键值数组
      * @return type
      */
-    public static function getByKeys(array $array,array $keys )
+    public static function getByKeys(array $array,$keys )
     {
+        // 20230609:兼容逗号分隔
+        if(!is_array($keys)){
+            $keys = explode(',',$keys);
+        }
         $match = array_fill_keys($keys, "");
         //比较两个（或更多个）数组的键名 ，并返回交集。
         return array_intersect_key( $array , $match);
@@ -137,6 +142,25 @@ class Arrays
         }
         return $array;
     }
+    /**
+     * 判断数组是否匹配子数组
+     * @param type $arr     一维数组（主）
+     * @param type $subArr  一维数组（子）,键值对
+     * @return bool
+     */
+    public static function isMatch($arr,$subArr = []){
+        if(!$subArr){
+            return true;
+        }
+        foreach($subArr as $k=>$v){
+            if(self::value($arr, $k) != $v){
+                return false;
+            }
+        }
+        return true;
+        
+    }
+    
     /**
      * 查询条件判断数据是否匹配，查询条件格式兼容数据库查询
      * @param type $data
@@ -270,6 +294,10 @@ class Arrays
      * [变更前，变更后]
      */
     public static function diffArr($preArr, $afterArr ){
+        // 20230904: 处理null情况
+        if(!$preArr){
+            return $afterArr;
+        }
         $diffArr = [];
         foreach($afterArr as $k=>$v){
             foreach($preArr as $kp=>$vp){
@@ -307,6 +335,83 @@ class Arrays
     public static function last($array){
         return array_pop($array);
     }
+    /**
+     * 20230718
+     * @param type $data
+     * @param type $picFields
+     * @return type
+     */
+    public static function picFieldCov(&$data,$picFields = []){
+        $arrCov = [$data];
+        $arr = Arrays2d::picFieldCov($arrCov, $picFields);
+        return $arr[0];
+    }
+
+    /**
+     * 20230730:合并数组，支持带键
+     */
+    public static function concat($arr1, $arr2){
+        if(!$arr1){
+            return $arr2;
+        }
+        if(!$arr2){
+            return $arr1;
+        }
+        // 雪花key被当成数字咋整
+        // 如果要保持键为字符串，可以使用 + 运算符来进行数组合并，而不是使用 array_merge() 函数。它会保留字符串键，并避免将其视为数字。
+        // 使用 + 运算符需要注意的一点是，如果键相同，后面的数组中具有相同键的元素将会被忽略。这意味着在合并数组时，如果有重复的键，只有第一个数组中的元素将被保留。
+        return $arr2 + $arr1;
+//        // 20230730:合并结果
+//        $resp = $arr1;
+//        foreach($arr2 as &$k=>$v){
+//            $resp[$k] = $v;
+//        }
+//        dump($resp);
+//        exit;
+//        // 20230730:array_merge有bug
+//        // return array_merge($arr1, $arr2);
+//        return $resp;
+    }
     
+    
+    /**  参数排序拼接
+     * @param $array
+     * @return string
+     */
+    public static function toUrlParams(array $array){
+        $buff = "";
+        foreach ($array as $k => $v)
+        {
+            if($v != "" && !is_array($v)){
+                $buff .= $k . "=" . $v . "&";
+            }
+        }
+        return trim($buff, "&");
+    }
+    
+    /*
+     * 使用给定字符串替换已有字符串
+     * 一般用于复制通用表单时，替换表单key
+     * @param type $arr
+     * @param type $replaceArr      替换字段：['T26N010'=>'T26N011'] 
+     * @param type $minLen          安全起见限制的最小字符
+     * @return type
+     * @throws Exception
+     */
+    public static function strReplace($arr , $replaceArr = [], $minLen = 5){
+        if(!$replaceArr){
+            return $arr;
+        }
+        
+        $str = json_encode($arr, JSON_UNESCAPED_UNICODE);
+        foreach($replaceArr as $k=>$v){
+            if(mb_strlen($k) < $minLen || mb_strlen($v) < $minLen){
+                throw new Exception('不支持替换少于'.$minLen.'的字符串');
+            }
+            $str = str_replace($k, $v, $str);
+        }
+
+        return json_decode($str, JSON_UNESCAPED_UNICODE);
+    }
     
 }

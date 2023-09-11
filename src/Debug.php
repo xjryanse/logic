@@ -21,11 +21,11 @@ class Debug
      * 是否调试环境
      * @return type
      */
-    public static function isDebug()
+    public static function isDebug($compare = 'xjryanse')
     {
         // return true;
         $debug = Request::param('debug','');
-        return $debug == 'xjryanse';
+        return $debug == $compare;
     }
     /**
      * 20220729：调试分组是否匹配
@@ -45,10 +45,23 @@ class Debug
      * 调试模式下输出
      */
     public static function dump($data){
-        if(Request::ip() == Cache::get('devRequestIp')){
+        if(self::isDevIp()){
             dump($data);
         }
     }
+    /**
+     * 
+     */
+    public static function debugTime(){
+        global $runMicTime;
+        if ( self::isDebug('time')){
+            $startTime = $runMicTime ? : 0;
+            $runMicTime = microtime(true);
+            $executionTime = $runMicTime - $startTime;
+            dump($executionTime);
+        }
+    }
+    
     /**
      * 2022-11-20:调试打印退出
      * @param type $data
@@ -56,5 +69,12 @@ class Debug
     public static function exit($data){
         dump($data);
         exit;
+    }
+    /**
+     * 当前访问ip是否开发者ip
+     * @return type
+     */
+    public static function isDevIp(){
+        return Request::ip() == Cache::get('devRequestIp');
     }
 }

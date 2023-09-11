@@ -253,4 +253,18 @@ class ModelQueryCon
         }
         return $yearmonthVal;
     }
+    /**
+     * 20230609:判断查询条件中是否有某个字段
+     * @param type $con
+     * @param type $key
+     */
+    public static function hasKey($con, $key){
+        $hasKey = false;
+        foreach($con as $v){
+            if($v[0] == $key){
+                $hasKey = true;
+            }
+        }
+        return $hasKey;
+    }
 }

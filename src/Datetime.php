@@ -244,12 +244,25 @@ class Datetime
         $con[] = [ $key ,'<=',$endDate];
         return $con;
     }
+
+    /**
+     * 20230721:分钟差
+     * @param type $time
+     * @param type $compareTime
+     * @param type $ceil        不足一分钟是否补齐
+     * @return type
+     */
+    public static function minuteDiff($time,$compareTime, $ceil = true){
+        $secondDiff = strtotime($time) - strtotime($compareTime);
+        return $ceil ? ceil($secondDiff / 60) : round($secondDiff / 60, 1);
+    }
+
     /**
      * 20220928：传入两个时间，获得时间差，不足1小时按1小时算
      */
-    public static function hourDiff($time,$compareTime){
+    public static function hourDiff($time,$compareTime, $ceil = true){
         $secondDiff = strtotime($time) - strtotime($compareTime);
-        return ceil($secondDiff / 3600);
+        return $ceil ? ceil($secondDiff / 3600) : round($secondDiff / 3600, 2);
     }
     /**
      * 20230409:传入两个时间，获得日期差天数，不足1天按1天算
@@ -257,9 +270,9 @@ class Datetime
      * @param type $compareTime
      * @return type
      */
-    public static function dayDiff($time,$compareTime){
+    public static function dayDiff($time,$compareTime, $ceil = true){
         $secondDiff = strtotime($time) - strtotime($compareTime);
-        return ceil($secondDiff / 86400);
+        return $ceil ? ceil($secondDiff / 86400) : round($secondDiff / 86400, 2);
     }
     /**
      * 天数，时间差，返回数组

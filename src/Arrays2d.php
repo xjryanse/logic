@@ -103,8 +103,13 @@ class Arrays2d
      * @param type $keys    键值数组
      * @return type
      */
-    public static function getByKeys(array $array,array $keys )
+    public static function getByKeys(array $array, $keys )
     {
+        // 20230609:兼容逗号分隔
+        if(!is_array($keys)){
+            $keys = explode(',',$keys);
+        }
+        
         foreach($array as &$value){
             $match = array_fill_keys($keys, "");
             //比较两个（或更多个）数组的键名 ，并返回交集。
@@ -374,4 +379,25 @@ class Arrays2d
         return $resArr;
     }
 
+    /**
+     * 二维数组转树状数组
+     * 20230903:从treeTrait搬迁来，逐步替代
+     * @param type $arr  二维数组
+     * @param type $pid     父类id
+     * @param type $pidname 父类字段名
+     * @param type $child   子元素名
+     * @return type
+     */
+    public static function makeTree($arr,$pid='',$pidname='pid',$child='list')
+    {
+        $trees = [];
+        foreach ($arr as $item) {
+            $iName = $item[$pidname] ? : '';
+            if( $iName == $pid ){
+                $item[$child] = self::makeTree($arr,$item['id'], $pidname, $child);
+                $trees[] = $item;
+            }
+        }
+        return $trees;
+    }
 }

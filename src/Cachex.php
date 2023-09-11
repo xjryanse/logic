@@ -95,4 +95,22 @@ class Cachex
             TpCache::set($kk,$vv);
         }
     }
+    /**
+     * 20230811：标记数据处理中
+     * 适用于重复性数据，锁
+     */
+    public static function markDoing($method, $param = []){
+        $paramJson = json_encode($param);
+        $cacheKey = 'MarkDoing_'.$method.'_'.md5($paramJson);
+        // 标记为处理中
+        TpCache::set($cacheKey, 1, 10);
+    }
+
+    public static function isDoing($method, $param = []){
+        $paramJson = json_encode($param);
+        $cacheKey = 'MarkDoing_'.$method.'_'.md5($paramJson);
+        // 标记为处理中
+        return TpCache::get($cacheKey);
+    }
+    
 }

@@ -78,4 +78,23 @@ class Sql
         $sql   .= " inner join (" . $dtlSql . ") as staticDtl set ".$mainField." = staticDtl.staticTotal where staticMain.id = staticDtl.". $dtlUniField;
         return $sql;
     }
+    /**
+     * 只获取实体表，不获取视图
+     */
+    public static function getTable($database){
+        $sql = "SELECT
+                    TABLE_NAME as `table`
+                FROM
+                    information_schema.`TABLES` 
+                WHERE
+                    table_schema = '".$database."'";
+        return $sql;
+    }
+    
+    
+    public static function getColumn($table){
+        $sql = "DESCRIBE ".$table;
+        return $sql;
+    }
+    
 }

@@ -31,7 +31,10 @@ class Runtime
      * 表字段，缓存文件名
      */
     public static function tableColumnFileName($tableName){
-        return Container::get('app')->getRuntimePath() . 'xjryanse' . DIRECTORY_SEPARATOR . 'db_column' . DIRECTORY_SEPARATOR .  $tableName . '.php';
+        $database   = config('database.database');
+        $fileName   = md5($database).$tableName;
+
+        return Container::get('app')->getRuntimePath() . 'xjryanse' . DIRECTORY_SEPARATOR . 'db_column' . DIRECTORY_SEPARATOR .  $fileName . '.php';
     }
     /**
      * 生成表字段
@@ -40,13 +43,19 @@ class Runtime
         $tables = Db::query('show tables');
         foreach($tables as $v){
             $t          = array_values($v);
-            $tableName  = $t[0];
-            // 数据内容
-            $columns    = DbOperate::columns($tableName);
-            // 保存路径
-            $filePath = self::tableColumnFileName($tableName);
-            self::dataToFile($columns, $filePath);
+            self::tableColumnGenerate($t[0]);
         }
+    }
+    /**
+     * 20230729:单表
+     * @param type $tableName
+     */
+    public static function tableColumnGenerate($tableName){
+        // 数据内容
+        $columns    = DbOperate::columns($tableName);
+        // 保存路径
+        $filePath = self::tableColumnFileName($tableName);
+        self::dataToFile($columns, $filePath);
     }
     /**
      * 缓存数据写入文件
@@ -56,8 +65,11 @@ class Runtime
      * @throws Exception
      */
     public static function dataToFile($data,$filePath){
+        $serData = serialize($data);
+        $cmpData = gzcompress($serData);
+
         $content    = '<?php ' . PHP_EOL . 'return ';
-        $content    .= var_export($data, true) . ';';
+        $content    .= var_export($cmpData, true) . ';';
 
         File::unlink($filePath);
         if (!file_exists(dirname($filePath)) && !mkdir(dirname($filePath), 0777, true)) {
@@ -67,56 +79,72 @@ class Runtime
         return file_put_contents($filePath, $content);            
     }
     /**
+     * 20230829:反序列化输出
+     * @param type $filePath
+     * @return type
+     */
+    public static function dataFromFile($filePath){
+        $serData    = include $filePath;
+        $uData      = gzuncompress($serData);
+        return unserialize($uData);
+    }
+    
+    /**
      * 数据表全量缓存（一般为系统表/配置表）
      * @param type $tableName
      * @return type
      */
     public static function tableFullCacheFileName($tableName){
-        return Container::get('app')->getRuntimePath() . 'xjryanse' . DIRECTORY_SEPARATOR . 'tb_data' . DIRECTORY_SEPARATOR .  $tableName . '.php';
+        $database   = config('database.database');
+        $fileName   = md5($database).$tableName;
+        return Container::get('app')->getRuntimePath() . 'xjryanse' . DIRECTORY_SEPARATOR . 'tb_data' . DIRECTORY_SEPARATOR .  $fileName . '.php';
     }
 
     /**
      * 数据表全量缓存
      */
-    public static function tableFullCache(){
-        $tables[] = 'w_system_column';
-        $tables[] = 'w_system_column_list';
-        $tables[] = 'w_system_ability';
-        $tables[] = 'w_system_area';
-        $tables[] = 'w_system_cate';
-        $tables[] = 'w_system_company';
-        $tables[] = 'w_universal_page';
-        $tables[] = 'w_universal_page_item';
-        $tables[] = 'w_universal_item_form';
-        $tables[] = 'w_universal_item_table';
-        $tables[] = 'w_universal_item_btn';
-        $tables[] = 'w_universal_item_grid';
-        $tables[] = 'w_universal_item_menu';
-        $tables[] = 'w_universal_company_default_page';
-        $tables[] = 'w_universal_group';
-        $tables[] = 'w_wechat_we_pub_template_msg';
-        $tables[] = 'w_generate_template';
-        $tables[] = 'w_generate_template_field';
-        $tables[] = 'w_user_auth_access';
-        $tables[] = 'w_wechat_we_app';
-        $tables[] = 'w_wechat_we_pub';
-        $tables[] = 'w_wechat_wx_pay_config';
-        
-        foreach($tables as $t){
-            $con = [];
-            if(DbOperate::hasField($t,'status')){
-                $con[] = ['status','=',1];
-            }
-            $service = DbOperate::getService($t);
-            if(!$service){
-                continue;
-            }
-            // 数据内容
-            // $dataAll    = Db::table($t)->where($con)->select();
-            $dataAll    = $service::selectX($con);
-            // 保存路径
-            $filePath   = self::tableFullCacheFileName($t);
-            self::dataToFile($dataAll, $filePath);
+    public static function allTableFullCache(){
+        $tables = DbOperate::cacheToFileTables();
+
+        foreach($tables as $tableName){
+            self::tableFullCache($tableName);
+        }
+    }
+    /**
+     * 20320728：单表缓存
+     * @param type $tableName
+     * @return bool
+     */
+    public static function tableFullCache($tableName){
+        $tables = DbOperate::cacheToFileTables();
+        if(!in_array($tableName, $tables)){
+            throw new Exception('数据表'.$tableName.'不可全量缓存');
+        }
+
+        $con = [];
+        // 20230729：恢复隐藏
+//        if(DbOperate::hasField($tableName,'status')){
+//            $con[] = ['status','=',1];
+//        }
+        $service = DbOperate::getService($tableName);
+        if(!$service){
+            return false;
+        }
+        // 数据内容
+        // $dataAll    = Db::table($t)->where($con)->select();
+        $dataAll    = $service::selectDb($con);
+        // 保存路径
+        $filePath   = self::tableFullCacheFileName($tableName);
+        return self::dataToFile($dataAll, $filePath);
+    }
+    /**
+     * 20230729:删除数据表缓存文件
+     * @param type $tableName
+     */
+    public static function tableCacheDel($tableName){
+        $filePath   = self::tableFullCacheFileName($tableName);
+        if(file_exists($filePath)){
+            unlink($filePath);
         }
     }
     

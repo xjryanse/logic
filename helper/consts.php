@@ -98,8 +98,10 @@ const FR_OPT_MAIN_DATA_KEY      = 'main_data_key'   ;//【写入表】关联主�
 const FR_OPT_MAIN_COND          = 'main_cond'       ;//【写入表】关联主表的条件
 const FR_OPT_MATCHES_DATA_KEY   = 'matches';//【写入表】关联主表id的字段名
 //【资金来源微信】
-const FR_FINANCE_WECHAT         = 'wechat';     //微信
-const FR_FINANCE_MONEY          = 'money';       //余额:指存放在平台账户中的钱，类似电子钱包的功能
+const FR_FINANCE_WECHAT         = 'wechat';         //微信
+const FR_FINANCE_MONEY          = 'money';          //余额:指存放在平台账户中的钱，类似电子钱包的功能
+const FR_FINANCE_CMBSKT         = 'cmbSkt';         //招商银行收款通
+const FR_FINANCE_WXWORK         = 'wxWork';         //企业微信
 
 const ORDER_NEEDPAY    = 'needpay';   //待支付
 const ORDER_PROCESSING = 'processing';   //进行中
@@ -173,6 +175,8 @@ const ABI_BUS_START_NOTICE_CUSTOMER = 'busStartNoticeCustomer';
 const ABI_BAO_PRE_PASS_AUTO_NOTICE_CUSTOMER = 'baoPrePassAutoNoticeCustomer';
 //发车前自动通知客户
 const ABI_PIN_PRE_PASS_AUTO_NOTICE_CUSTOMER = 'pinPrePassAutoNoticeCustomer';
+// 20230907:拼车未绑定公众号不能购票
+const ABI_PIN_NO_BIND_CANNOT_ORDER = 'pinNoBindCannotOrder';
 
 //20220620递归处理：前向
 //方向key

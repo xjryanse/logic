@@ -71,4 +71,22 @@ class File {
             return false;
         }
     }
+
+    /**
+     * 计算文件类型
+     * @describe 支持image,video,file三种
+     * @param type $path
+     * @return type
+     * @createTime 2023-06-18 13:58:00
+     */
+    public static function getFileType($path) {
+        $pathInfo   = pathinfo($path, PATHINFO_EXTENSION);
+
+        $imageArr   = ['jpg','png','jpeg','gif','bmp','tiff'];
+        $videoArr   = ['mp4','avi','mov','rmvb','flv'];
+        $fileArr    = ['doc','docx','xls','xlsx','zip','rar'];
+        $typeArr    = array_merge(array_fill_keys($imageArr, 'image'),array_fill_keys($videoArr, 'video'),array_fill_keys($fileArr, 'file'));
+
+        return Arrays::value($typeArr, $pathInfo,'other');
+    }
 }

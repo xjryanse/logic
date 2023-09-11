@@ -200,12 +200,19 @@ class DataList
     }
     /*
      * 20230421:数据列表，转换为分页的数据格式
+     * @param type $list
+     * @param type $withSum
+     * @param type $sumFields
+     * @param type $perPage
+     * @param type $thisPage
+     * @return type
      */
-    public static function dataPackPaginate($list, $withSum = false, $sumFields = []){
-        $data['data']           = $list;
-        $data['last_page']      = 1;
-        $data['current_page']   = 1;
-        $data['per_page']       = count($list);
+    public static function dataPackPaginate($list, $withSum = false, $sumFields = [], $perPage = 50, $thisPage = 1){
+        $start = $perPage * ($thisPage - 1);
+        $data['data']           = $list ? array_slice($list, $start, $perPage) : [];
+        $data['last_page']      = ceil(count($list) / $perPage);
+        $data['current_page']   = $thisPage;
+        $data['per_page']       = $perPage;
         $data['total']          = count($list);
         $data['withSum']        = $withSum ? 1 : 0;
 
@@ -219,5 +226,28 @@ class DataList
 
         return $data;
     }
-    
+    /**
+     * 20230730:将查询结果存在内存中，如果已有同样查询内容，直接返回，缺失的再查数组补。
+     * 性能优化
+     * @param type $instValues
+     * @param type $ids
+     * @param type $func
+     */
+    public static function dataObjAdd(&$instValues, $ids, $func ){
+        // 数据处理开始
+        // 20230730:兼容传单个id的情况
+        if(is_string($ids) || is_numeric($ids)){
+            $ids = [$ids];
+        }
+        $keys = $instValues ? array_keys($instValues) : [];
+        // 提取不在$keys 中的id记录，用于查询
+        $qIds       = array_diff($ids, $keys);
+        // 20230730:如果没有id就不需要查了，节约开销
+        if($qIds){
+            $newArr     = $func($qIds);
+            $instValues = Arrays::concat($instValues, $newArr);
+        }
+
+        return $instValues;
+    }
 }

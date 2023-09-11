@@ -7,6 +7,7 @@ use xjryanse\logic\Cachex;
 use xjryanse\logic\Debug;
 use xjryanse\logic\DbOperate;
 use xjryanse\logic\Runtime;
+use xjryanse\logic\Strings;
 use Exception;
 /**
  * 数据库操作类库
@@ -34,12 +35,18 @@ class DbOperate
         return Cachex::funcGet($cacheKey, function(){
             $database     = config('database.database');
             $sql = "SELECT
-                    TABLE_NAME
+                    TABLE_NAME as `table`
                 FROM
                     information_schema.`TABLES` 
                 WHERE
                     table_schema = '".$database."'";
             $tables = Db::query($sql);
+            // 20230619:干脆加一个字段
+            foreach($tables as &$v){
+                $arr            = explode('_', $v['table']);
+                $v['module']    = Arrays::value($arr, 1,'');
+            }
+
             return $tables;
         });
     }
@@ -47,7 +54,40 @@ class DbOperate
      * 所有的数据表名
      */
     public static function allTableNames(){
-        return array_column(self::allTableArr(), 'TABLE_NAME');
+        return array_column(self::allTableArr(), 'table');
+    }
+    /**
+     * 20230728：数据需要写入文件缓存的表名
+     */
+    public static function cacheToFileTables(){
+        // if(!property_exists($class, $property))
+        return Cachex::funcGet(__METHOD__, function(){
+            $tables = self::allTableNames();
+            $arrs = [];
+            foreach($tables as $table){
+                $service = self::getService($table);
+                if(!class_exists($service)){
+                    continue;
+                }
+                // 存储在模型类中
+                $modelClass  = $service::mainModelClass();
+                if(!class_exists($modelClass) || !property_exists($modelClass, 'cacheToFile')){
+                    continue;
+                }
+                if(!$modelClass::$cacheToFile){
+                    continue;
+                }
+                $arrs[] = $table;
+            }
+            return $arrs;
+        });
+    }
+    /**
+     * 提取所有模块信息
+     * @createTime 2023-06-19 08:35:00
+     */
+    public static function allModules(){
+        return array_unique(array_column(self::allTableArr(), 'module'));
     }
     /**
      * 用于替代show columns from 的sql语句
@@ -55,29 +95,32 @@ class DbOperate
     public static function columns($tableName){
         $cacheFile = Runtime::tableColumnFileName($tableName);
         if(is_file($cacheFile)){
-            return include $cacheFile;
+            return Runtime::dataFromFile($cacheFile);
+            // return include $cacheFile;
         }
         // 没有缓存文件，按原方式提取
         $cacheKey = __CLASS__.__METHOD__;
         return Cachex::funcGet( $cacheKey.'_'.$tableName, function() use ($tableName){
-            $database     = config('database.database');
-            $sql = "SELECT
-                    table_name,
-                    column_name AS Field,
-                    column_type AS Type,
-                    is_nullable AS `Null`,
-                    column_key AS `Key`,
-                    column_default AS `Default`,
-                    extra as Extra ,
-                    COLUMN_COMMENT
-                FROM
-                    information_schema.`COLUMNS` 
-                WHERE
-                    table_schema = '".$database."' and TABLE_NAME = '".$tableName."'";
+//            $database     = config('database.database');
+//            $sql = "SELECT
+//                    table_name,
+//                    column_name AS Field,
+//                    column_type AS Type,
+//                    is_nullable AS `Null`,
+//                    column_key AS `Key`,
+//                    column_default AS `Default`,
+//                    extra as Extra ,
+//                    COLUMN_COMMENT
+//                FROM
+//                    information_schema.`COLUMNS` 
+//                WHERE
+//                    table_schema = '".$database."' and TABLE_NAME = '".$tableName."'";
+//            $tableColumn = Db::query($sql);
+//            dump($tableColumn);
+//            
+            // 20230905:尝试优化
+            $sql = 'DESCRIBE '.$tableName;
             $tableColumn = Db::query($sql);
-//
-//            $con[] = ['TABLE_NAME','=',$tableName];
-//            $tableColumn = Arrays2d::listFilter($res, $con);
 
             return $tableColumn;
         });
@@ -352,7 +395,7 @@ class DbOperate
                 // 20220621
                 foreach($saveArr as $k=>$arr){
                     $sql = self::saveAllSql($tableName, array_values($arr));
-                    Db::query($sql);
+                    Db::execute($sql);
                 }
             }
             //【2】更新的数据
@@ -370,7 +413,7 @@ class DbOperate
             //【4】执行自定义sql
             $glSqlQuery = array_unique($glSqlQuery);
             foreach($glSqlQuery as $sql){
-                Db::query($sql);
+                Db::execute($sql);
             }
         Debug::debug('$glSaveData',$glSaveData,'DbOperate');
         Debug::debug('$glUpdateData',$glUpdateData,'DbOperate');
@@ -386,6 +429,14 @@ class DbOperate
         global $glDeleteData;
         $delDatas = Arrays::value($glDeleteData, $tableName, []);
         return in_array($id, $delDatas);
+    }
+    /**
+     * 是否在全局添加中
+     */
+    public static function isGlobalSave($tableName,$id){
+        global $glSaveData;
+        $saveDatas = Arrays::value($glSaveData, $tableName, []);
+        return in_array($id, array_column($saveDatas,'id'));
     }
     
     /****** 给框架用的 *********/
@@ -439,18 +490,54 @@ class DbOperate
 
     /**
      * 20230528：提取全系统配置数组（注入模式）
+baseClass: "xjryanse\customer\service\CustomerService"
+class: "xjryanse\customer\service\CustomerAnliService"
+keyField: "customer_id"
+master: true
+property: "customerAnli"
+     * 
      */
+//    public static function uniAttrConfArr($con = []){
+//        $cacheKey = __METHOD__;
+//        $listsAll = Cachex::funcGet($cacheKey, function(){
+//            $tables = self::allTableNames();
+//            $objAttrs = [];
+//            foreach($tables as $table){
+//                $service = self::getService($table);
+//                if (method_exists($service, 'uniAttrConfArr')) {
+//                    $tmpAttrs = $service::uniAttrConfArr();
+//                    $objAttrs = array_merge($objAttrs,$tmpAttrs);
+//                }
+//            }
+//            return $objAttrs;
+//        });
+//        return Arrays2d::listFilter($listsAll, $con);
+//    }
+    
     public static function uniAttrConfArr($con = []){
         $cacheKey = __METHOD__;
         $listsAll = Cachex::funcGet($cacheKey, function(){
-            $tables = self::allTableNames();
+            $fieldsArr = self::uniFieldsArr();
             $objAttrs = [];
-            foreach($tables as $table){
-                $service = self::getService($table);
-                if (method_exists($service, 'uniAttrConfArr')) {
-                    $tmpAttrs = $service::uniAttrConfArr();
-                    $objAttrs = array_merge($objAttrs,$tmpAttrs);
-                }
+            foreach($fieldsArr as $v){
+                $tmp                = [];
+                $tmp['baseClass']   = self::getService(Arrays::value($v, 'uniTable'));
+                $tmp['class']       = self::getService(Arrays::value($v, 'thisTable'));
+                $tmp['keyField']    = Arrays::value($v, 'field');
+                // TODO先默认主库
+                $tmp['master']      = true; 
+                $tmp['property']    = Arrays::value($v, 'property'); 
+                // 20230608：
+                $tmp['inList']      = Arrays::value($v, 'in_list');
+                $tmp['inStatics']   = Arrays::value($v, 'in_statics');
+                $tmp['inExist']     = Arrays::value($v, 'in_exist'); 
+                // 20230726
+                $tmp['uniField']    = Arrays::value($v, 'uni_field' ,'id'); 
+                // 20230608
+                $tmp['existField']  = Arrays::value($v, 'existField'); 
+                // 20230807：匹配条件
+                $tmp['condition']   = Arrays::value($v, 'condition',[]); 
+                $objAttrs[]         = $tmp;
             }
             return $objAttrs;
         });
@@ -538,10 +625,48 @@ class DbOperate
             $tCon[] = [$thisField,'=',$thisValue];
             $count = $tService::where($tCon)->count();
             if($count){
-                throw new Exception(Arrays::value($field, 'del_msg','数据已使用不可删'));
+                $msgRaw = Arrays::value($field, 'del_msg','数据已使用不可删');
+                
+                $data['count'] = $count;
+                //消息替换
+                $msgStr = Strings::dataReplace($msgRaw, $data);
+                throw new Exception($msgStr);
             }
         }
         return true;
     }
+    /**
+     * 
+     * @param type $tableName
+     * @param type $con
+     * @throws Exception
+     */
+    public static function checkConFields($tableName,$con = []){
+        foreach($con as $v){
+            if(!self::hasField($tableName, $v[0])){
+                throw new Exception('数据表'.$tableName.'没有'.$v[0].'字段');
+            }
+        }
+    }
     
+    /**
+     * 20230605:数据表前缀
+     */
+    public static function prefix(){
+        return config('database.prefix');
+    }
+    /**
+     * 20230608:存在字段名称
+     * circuit_id→isCircuitExist
+     * @param type $fieldName
+     */
+    public static function fieldNameForExist($fieldName){
+        $arr = explode('_',$fieldName);
+        // 去除最后，一般为id
+        array_pop($arr);
+        // 首尾添加is 和 exist
+        array_unshift($arr, 'is');
+        array_push($arr,'exist');
+        return Strings::camelize(implode('_',$arr));
+    }
 }
