@@ -100,6 +100,48 @@ class Strings {
     }
 
     /**
+     * 将csv格式的数据，转成数组，
+     * 形如微信账单：20240722：
+交易时间,公众账号ID,商户号,特约商户号,设备号,微信订单号,商户订单号,用户标识,交易类型,交易状态,付款银行,货币种类,应结订单金额,代金券金额,微信退款单号,商户退款单号,退款金额,充值券退款金额,退款类型,退款状态,商品名称,商户数据包,手续费,费率,订单金额,申请退款金额,费率备注
+`2024-07-09 16:47:58,`wxe1696e7c7db8e7f4,`1579507281,`0,`,`4200002166202406250324636876,`5617363390111199232,`oVgfJ5d35c6iAXrRCnfhOGF9aHT8,`JSAPI,`REFUND,`OTHERS,`CNY,`0.00,`0.00,`50302709992024070991956632208,`5622435300878286848,`50.00,`0.00,`ORIGINAL,`SUCCESS,`2024-06-28 18:30 客户付款,`{\"statement_id\":\"5617363390111199232\"},`-0.27000,`0.54%,`0.00,`50.00,`
+`2024-07-09 10:06:33,`wxe1696e7c7db8e7f4,`1579507281,`0,`,`4200002360202407091150650780,`5622334254839656448,`oVgfJ5TrnzDOSuaxbFc33mw-5LUY,`JSAPI,`SUCCESS,`OTHERS,`CNY,`60.00,`0.00,`0,`0,`0.00,`0.00,`,`,`2024-07-10 13:50 客户付款,`{\"statement_id\":\"5622334254839656448\"},`0.32000,`0.54%,`60.00,`0.00,`
+总交易单数,应结订单总金额,退款总金额,充值券退款总金额,手续费总金额,订单总金额,申请退款总金额
+`29,`1300.00,`490.00,`0.00,`4.33000,`1300.00,`490.00
+     * 
+     */
+    public static function csvToArray($dataStrRaw){
+        // 去除excel前标识
+        $dataStr = str_replace('`', '', $dataStrRaw);
+        $csvArray = array_map('str_getcsv',explode("\n",$dataStr));
+        
+        $fieldCount = 0;
+        $fieldName = [];
+        
+        $resArr = [];
+        $tmpArr = [];
+        foreach($csvArray as $v){
+            $count = count($v);
+            if($fieldCount != $count){
+                if($tmpArr){
+                    $resArr[] = $tmpArr;
+                }
+                $fieldName = $v;
+                // 重置
+                $tmpArr = [];
+            } else {
+                // 拼接
+                $tmpArr[] = array_combine($fieldName, $v);
+            }
+
+            $fieldCount = $count;
+        }
+        if($tmpArr){
+            $resArr[] = $tmpArr;
+        }
+        return $resArr;
+    }
+    
+    /**
      * 字符串是否一个手机号码
      * @param type $dataStr
      */
@@ -121,6 +163,16 @@ class Strings {
         return mb_strlen($str) > $length ? mb_substr($str, 0, $length) . '…' : $str;
     }
 
+    /**
+     * 保留字符串中的中文数字和阿拉伯数字
+     * 场景：初一年3班，处理成一3
+     */
+    public static function keepCNNumber($str){
+        // $str = "你好，123，一二三，456，七八九";
+        // 输出：123一二三456七八九
+        // return preg_replace("/[^\x{4e00}-\x{9fa5}一二三四五六七八九十百千万0-9]/u", "", $str);
+        return preg_replace("/[^一二三四五六七八九十百千万亿0-9]/u", "", $str);
+    }
     /**
      * 保持长度，前补0
      */
@@ -155,21 +207,33 @@ class Strings {
     public static function hasStr($string, $substring){
         return strpos($string, $substring);
     }
-
+    /**
+     * 20231207:判断是否有空格
+     */
+    public static function hasBlank($string){
+        return strpos($string, ' ');
+    }
+    
     /**
      * 以数据的键值对替换字符串
      * @param type $str
-     * @param type $data
+     * @param array $data
+     * @param string $keyPreFix 适用于递归
      * @return type
      */
-    public static function dataReplace($str, array $data) {
+    public static function dataReplace($str, array $data, $keyPreFix = '') {
+        // 20240427：似乎一行可以搞定？？
+        // $template = str_replace(array_keys($this->data), $this->data, $template);
         foreach ($data as $key => &$value) {
             // 20230902增加判断
             if(is_array($value) || is_object($value)){
-                continue;
+                // continue;
+                // 递归
+                $str = self::dataReplace($str, $value, $key.'.');
+            } else {
+                // 不是数组的才替换
+                $str = str_replace('{$' . $keyPreFix.$key . '}', $value, $str);
             }
-            // 不是数组的才替换
-            $str = str_replace('{$' . $key . '}', $value, $str);
         }
         return $str;
     }
@@ -313,5 +377,48 @@ class Strings {
         $lines_arr = preg_split('/\n|\r/', $string);
         return count($lines_arr);
     }
+    /**
+     * 提取最外层括号内容
+     * @param type $fullString
+     */
+    public static function getInnerBlank($fullString,$begin='(',$end=')'){
+        $regStr = '/(?<=\\'.$begin.').*(?=\\'.$end.')/is';
+        preg_match($regStr, $fullString, $matches);
+        return $matches ? $matches[0] : '';
+    }
+    /**
+     * 20231221:提取字符串中的参数
+     */
+    public static function getParams($str){
+        $pattern = '/{\$([\w]+)\}/';
+        preg_match_all($pattern, $str, $matches);
+        return $matches[1];
+    }
+    /**
+     * 各行开始位置添加空格
+     * @param type $text            文本
+     * @param type $numberOfSpaces  空格数
+     * @return type
+     */
+    public static function addPreLineSpaces($text, $numberOfSpaces) {
+        $lines  = explode("\n", $text);
+        $spaces = str_repeat(' ', $numberOfSpaces);
 
+        foreach ($lines as &$line) {
+            $line = $spaces . $line;
+        }
+        // unset($line); // 取消最后一个元素的引用
+
+        return implode("\n", $lines);
+    }
+    /**
+     * 字符串按空格拆分成数组：多种空格
+     * 2024-04-28
+     * @param type $text
+     * @return type
+     */
+    public static function blankExplode($text){
+        return preg_split('/\s+/', $text, -1, PREG_SPLIT_NO_EMPTY);
+    }
+    
 }

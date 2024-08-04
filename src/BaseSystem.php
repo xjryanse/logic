@@ -6,6 +6,7 @@ use xjryanse\system\logic\ConfigLogic;
 use xjryanse\curl\Query;
 use xjryanse\logic\Url;
 use Exception;
+use think\facade\Request;
 /**
  * 基本站系统逻辑
  */
@@ -17,14 +18,14 @@ class BaseSystem {
      * @throws Exception
      */
     public static function baseSysGet($url, $param = []){
-        // 系统基本站点
-        $baseHost   = ConfigLogic::config('systemBaseHost');
+        // 20240107:增加入参基本站 系统基本站点
+        $baseHost   = Request::param('systemBaseHost') ? : ConfigLogic::config('systemBaseHost');
         if(!$baseHost){
             return false;
         }
-
+        $companyKey = Request::param('comKey') ? : session(SESSION_COMPANY_KEY);
         // $url        = $baseHost.'/'.session(SESSION_COMPANY_KEY).'/webapi/Universal/pageGet';
-        $url        = $baseHost.'/'.session(SESSION_COMPANY_KEY).$url;
+        $url        = $baseHost.'/'.$companyKey.$url;
         $finalUrl   = Url::addParam($url, $param);
 
         $res        = Query::get($finalUrl);

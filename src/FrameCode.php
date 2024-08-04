@@ -4,77 +4,16 @@ namespace xjryanse\logic;
 
 use think\Container;
 use think\Loader;
+use think\facade\Request;
 use xjryanse\logic\Strings;
 use xjryanse\system\service\SystemServiceMethodLogService;
 use xjryanse\system\service\SystemLogService;
+use xjryanse\logic\DbOperate;
 
 /**
  * 框架代码
  */
 class FrameCode {
-    /**
-     * 20230613:提取类库文件中的方法
-     * @param type $path
-     */
-    protected static function fileFunctions($path){
-        $content = file_get_contents($path);
-        preg_match_all("/.*?public.*?function (.*?)\(.*?\)/i", $content, $matches);
-        $functions = $matches[1];
-        return $functions;
-    }
-    /**
-     * 20230613:正则提取方法代码
-     * @param type $path
-     * @param type $function
-     * @param type $withComment     带注释?
-     * @return type
-     */
-    public static function fileFuncCode($path, $function ,$withComment = false){
-        $content = file_get_contents($path);
-        // 第一步：写一个不能支持嵌套的表达式只能匹配最内层  {[^{}]*}
-        
-        // preg_match_all("/.*?public.*?function (.*?)\(.*?\)/i", $content, $matches);
-        // preg_match_all('/{((?:[^{}]++|(?R))*+)}/', $str, $matches);
-        if($withComment){
-            // preg_match_all('/{(([^{}]*|(?R))*)}/', $content, $matches);
-//            dump($matches);
-            // 神贴链接：https://blog.csdn.net/technofiend/article/details/49906755
-            // TODO:没有注释的还是出不来？？
-            preg_match_all('/[\x20]\/\*[^\/]*\*\/*[\s]*public.*?function '.$function.'\(.*?({(?>[^{}]+|(?1))*})/', $content, $matches);
-        } else {
-            $regStr = '/[\x20]*public.*?function '.$function.'\(.*?({(?>[^{}]+|(?1))*})/';
-            preg_match_all($regStr, $content, $matches);
-        }
-        $functions = $matches[0];
-        return $functions ? $functions[0] : '';
-    }
-    /*
-     * 20230615:文件方法，注释
-     */
-    public static function fileFuncComment($path, $function ){
-        $content = file_get_contents($path);
-        preg_match_all('/(\/\*([^\/]*)\*\/)(?=([\s]*public.*?function '.$function .'))/', $content, $matches);
-        $comments = $matches[0];
-        return $comments ? $comments[0] : '';
-    }
-    /**
-     * 20230615:服务类方法，提取代码
-     */
-    public static function serviceFuncCode($service, $method, $withComment = false){
-        $filePath   = self::classGetFilePath($service);
-        $code       = self::fileFuncCode($filePath, $method, $withComment);
-        return $code;
-    }
-    /**
-     * 20230615：服务类方法，提取注释
-     * @param type $service
-     * @param type $method
-     */
-    public static function serviceFuncComment($service, $method){
-        $filePath   = self::classGetFilePath($service);
-        $comment    = self::fileFuncComment($filePath, $method);
-        return $comment;
-    }
     
     /**
      * 20230528:提取全部模块名
@@ -96,24 +35,7 @@ class FrameCode {
             return $modules;
         });
     }
-    /**
-     * 20230803：获取指定路径下php类名
-     */
-    protected static function getPathClasses($folderPath) {
-        if(!is_dir($folderPath)){
-            return [];
-        }
-        $folderPath .= '*.php';
-        $aryFiles = glob($folderPath);
-        foreach ($aryFiles as $file) {
-            if (is_dir($file)) {
-                continue;
-            }else {
-                $files[] = basename($file,'.php');
-            }
-        }
-        return $files;
-    }
+
     /**
      * 20230528：提取指定模块全部控制器
      * @param type $module
@@ -125,7 +47,7 @@ class FrameCode {
         }
         $appPath = Container::get('app')->getAppPath();
         $modulePath = $appPath . DIRECTORY_SEPARATOR . $module .DIRECTORY_SEPARATOR. 'controller'.DIRECTORY_SEPARATOR;  //控制器路径
-        return self::getPathClasses($modulePath);
+        return CodeFile::getPathClasses($modulePath);
     }
     /**
      * 20230803：提取指定模块app路径下全部模型类
@@ -138,7 +60,7 @@ class FrameCode {
         }
         $appPath = Container::get('app')->getAppPath();
         $modulePath = $appPath . DIRECTORY_SEPARATOR . $module .DIRECTORY_SEPARATOR. 'model'.DIRECTORY_SEPARATOR;  //控制器路径
-        return self::getPathClasses($modulePath);
+        return CodeFile::getPathClasses($modulePath);
     }
     
     public static function modelsAppArr($con = []){
@@ -172,7 +94,7 @@ class FrameCode {
         $rootPath   = Container::get('app')->getRootPath();
         $modulePath = $rootPath . 'vendor' . DIRECTORY_SEPARATOR . 'xjryanse' . DIRECTORY_SEPARATOR 
                 . $module .DIRECTORY_SEPARATOR .'src'.DIRECTORY_SEPARATOR . 'model' . DIRECTORY_SEPARATOR;  //控制器路径
-        return self::getPathClasses($modulePath);
+        return CodeFile::getPathClasses($modulePath);
     }
         
     public static function modelsXieArr($con = []){
@@ -201,7 +123,7 @@ class FrameCode {
         $rootPath   = Container::get('app')->getRootPath();
         $modulePath = $rootPath . 'vendor' . DIRECTORY_SEPARATOR . 'xjryanse' . DIRECTORY_SEPARATOR 
                 . $module .DIRECTORY_SEPARATOR .'src'.DIRECTORY_SEPARATOR . 'model' . DIRECTORY_SEPARATOR;  //控制器路径
-        return self::getPathClasses($modulePath);
+        return CodeFile::getPathClasses($modulePath);
     }
         
     public static function serviceXieArr($con = []){
@@ -229,7 +151,7 @@ class FrameCode {
         }
         $rootPath   = Container::get('app')->getRootPath();
         $modulePath = $rootPath . DIRECTORY_SEPARATOR . $module .DIRECTORY_SEPARATOR. 'service'.DIRECTORY_SEPARATOR;  //控制器路径
-        return self::getPathClasses($modulePath);
+        return CodeFile::getPathClasses($modulePath);
     }
         
     public static function serviceAppArr($con = []){
@@ -286,7 +208,7 @@ class FrameCode {
 //        preg_match_all("/.*?public.*?function(.*?)\(.*?\)/i", $content, $matches);
 //        $functions = $matches[1];
         $path = $appPath .DIRECTORY_SEPARATOR.$module.DIRECTORY_SEPARATOR.'controller'.DIRECTORY_SEPARATOR.$controller.'.php';
-        $functions = self::fileFunctions($path);
+        $functions = CodeFile::fileFunctions($path);
         
         $customerFunctions = [];
         foreach ($functions as $func){
@@ -299,6 +221,75 @@ class FrameCode {
         return $customerFunctions;
     }
     
+    /**
+     * 20240418:复用trait方法
+     * @param type $con
+     */
+    public static function traitsArr($con = []){
+        $cacheKey = __METHOD__;
+        $listsAll = Cachex::funcGet($cacheKey, function(){
+            $tables = DbOperate::allTableNames();
+            $arr    = [];
+            foreach($tables as $tableName){
+                $service = DbOperate::getService($tableName);
+                if(!class_exists($service)){
+                    continue;
+                }
+                $func = new \ReflectionClass($service);
+                // $filePath = $func->getFileName();
+                $filePath = Loader::findFile(ltrim($service,'\\'));
+                // 类反射提取方法
+                $traits     = $func->getTraits();
+                // 项目根目录：/www/wwwroot/gsjk
+                // $projectLocalPath = 'D:\phpstudy_pro\WWW\tenancy';
+                foreach($traits as $k=>$trait){
+                    $tmp['table']       = $tableName;
+                    $tmp['traitName']   = $k;
+                    $tmp['methodCount']= count($trait->getMethods());
+
+                    $arr[]              = $tmp;
+                }
+            }
+            return $arr;
+        });
+        return $con ? Arrays2d::listFilter($listsAll, $con) : $listsAll;
+    }
+    
+    /**
+     * 20240418:复用trait方法
+     * @param type $con
+     */
+    public static function traitsMethodArr($tableName, $con = []){
+        $cacheKey = __METHOD__. $tableName;
+        $listsAll = Cachex::funcGet($cacheKey, function() use ($tableName){
+            $arr    = [];
+            $service = DbOperate::getService($tableName);
+            if(!class_exists($service)){
+                return [];
+            }
+            $func = new \ReflectionClass($service);
+            // 类反射提取方法
+            $traits     = $func->getTraits();
+            // 项目根目录：/www/wwwroot/gsjk
+            $projectBasePath = dirname($_SERVER['DOCUMENT_ROOT']);            
+            // 复用trait
+            foreach($traits as $k=>$trait){
+                $filePath = Loader::findFile(ltrim($k,'\\'));
+                // trait内方法
+                $methods = $trait->getMethods();
+                foreach($methods as $mt){
+                    $tmp                = [];
+                    $tmp                = self::traitDetail($k, $mt->name, 'list');
+                    $tmp['table']       = $tableName;
+                    $tmp['traitName']   = $k;
+
+                    $arr[]              = $tmp;
+                }
+            }
+            return $arr;
+        });
+        return $con ? Arrays2d::listFilter($listsAll, $con) : $listsAll;
+    }
     
     /**
      * 20230613:服务类库方法
@@ -318,19 +309,16 @@ class FrameCode {
                 // $filePath = $func->getFileName();
                 $filePath = Loader::findFile(ltrim($service,'\\'));
                 // 文件正则匹配方法名                
-                $fileFuncs = self::fileFunctions($filePath);
+                $fileFuncs = CodeFile::fileFunctions($filePath);
                 // 类反射提取方法
                 $reflMethods = $func->getMethods();
-//                [0] => object(ReflectionMethod)#52 (2) {
-//                    ["name"] => string(11) "getOutPhone"
-//                    ["class"] => string(35) "app\ali\service\AliCallPhoneService"
-//                  }
                 foreach($reflMethods as $method){
                     if(!in_array($method->name, $fileFuncs)){
                         continue;
                     }
                     // $tmp['document']    = $method->getDocComment();
-                    $arr[]              = self::serviceDetail($service, $method->name, 'list');
+                    $tmp                = self::serviceDetail($service, $method->name, 'list');
+                    $arr[]              = $tmp;
                 }
             }
             return $arr;
@@ -346,82 +334,28 @@ class FrameCode {
         $data['method']      = $method;
         // 20230617:方法类型：field:字段映射；eTrigger:传统增删改触发器；rTrigger:
         $data['methodType']  = self::calServiceMethodType($method);
-        // 不带注释方法
-        $code       = self::serviceFuncCode($service, $method, false);
-        // 带注释方法
-        $codeFull   = self::serviceFuncCode($service, $method, true);
-        // 注释
-        $comment    = self::serviceFuncComment($service, $method);
-        if($type == 'detail'){
-            $data['code']       = self::serviceFuncCode($service, $method, false);
-            $data['codeFull']   = self::serviceFuncCode($service, $method, true);
-            $data['comment']    = self::serviceFuncComment($service, $method);
-        }
-        // 方法行数（不带注释）
-        $data['lines']      = Strings::lineCount($code);
-        // 20230616:带注释行数
-        $data['linesWithComment']       = Strings::lineCount($codeFull);
-
-        // 注释
-        $commentArr         = FrameCode::parseComment($comment , '');
-        // 接口标题
-        $data['title']      = Arrays::value($commentArr, 'title');
-        // 接口描述
-        $data['describe']   = Arrays::value($commentArr, 'describe');
-        // 第三方参考文档url:比如，微信文档，阿里文档
-        $data['refUrl']     = Arrays::value($commentArr, 'refUrl');
-        $data['hasRefUrl']  = $data['refUrl'] ? 1: 0;
-        // TODO作者
-        $data['creater']     = Arrays::value($commentArr, 'creater');
-        $data['updater']     = Arrays::value($commentArr, 'updater');
-        $data['create_time'] = Arrays::value($commentArr, 'create_time');
-        $data['update_time'] = Arrays::value($commentArr, 'update_time');
+        // 主数据
+        $dataMain = CodeClass::classMethodDetail($service, $method, $type);
+        $data = array_merge($data, $dataMain);
+        
         // 20230711:方法调用次数
         $data['callCount']   = SystemServiceMethodLogService::serviceMethodCount($service, $method);
         
         return $data;
     }
     /**
-     * 20230615:服务类提取源文件
-     * @param type $class
-     * @return type
+     * 20230616：详情
      */
-    protected static function classGetFilePath($class){
-        /*
-        $func = new \ReflectionClass($class);
-        $filePathRaw   = $func->getFileName();
-         */
-        // 20230711
-        $filePathRaw = Loader::findFile(ltrim($class,'\\'));
-        // 20230613：本系统挖坑
-        $filePath   = str_replace('application', 'app', $filePathRaw);
-        return $filePath;
+    public static function traitDetail($classStr, $method, $type = 'detail'){
+        $data['method']      = $method;
+        $data['traitName']   = $classStr;
+        // 主数据
+        $dataMain = CodeClass::classMethodDetail($classStr, $method, $type);
+        $data = array_merge($data, $dataMain);
+
+        return $data;
     }
-    /**
-     * 20230616:解析注释
-     * @param string $comment
-     * @param string $default
-     * @return array
-     */
-    public static function parseComment(string $comment, string $default = ''): array
-    {
-        // $text = strtr($comment, "\n", ' ');
-        $text = $comment;
-        // $title = preg_replace('/^\/\*\s*\*\s*\*\s*(.*?)\s*\*.*?$/', '$1', $text);
-        // if (in_array(substr($title, 0, 5), ['@auth', '@menu', '@logi'])) $title = $default;
-        $res = [
-            'title'     => preg_match('/\/\*\*[\n\r][\x20]*\*[\x20]*(.*?)[\n\r]/', $text, $matches) ? $matches[1] : '' ?: $default,
-            // 20230616：方法描述
-            'describe'  => preg_match('/@describe\s*(.*)\s*/i', $text, $matches) ? $matches[1] : '',
-            // 20230616：外部文档地址
-            'refUrl'        => preg_match('/@refUrl\s*(.*)\s*/i', $text, $matches) ? $matches[1] : '',
-            'creater'       => preg_match('/@creater\s*(.*)\s*/i', $text, $matches) ? $matches[1] : '',
-            'create_time'   => preg_match('/@createTime\s*(.*)\s*/i', $text, $matches) ? $matches[1] : '',
-            'updater'       => preg_match('/@updater\s*(.*)\s*/i', $text, $matches) ? $matches[1] : '',
-            'update_time'   => preg_match('/@updateTime\s*(.*)\s*/i', $text, $matches) ? $matches[1] : '',
-        ];
-        return $res;
-    }
+
     /**
      * 20230617:计算服务类的方法类型
      * 方法类型：field:字段映射；eTrigger:传统增删改触发器；rTrigger:优化后的增删改触发器
@@ -481,6 +415,13 @@ class FrameCode {
     public static function controllerDetail($module, $controller, $type = 'detail'){
         $data['module']         = $module;
         $data['controller']     = $controller;
+        
+        $class      = '\\app\\'.$module.'\\controller\\'.$controller;
+        // 20240418:提取主数据
+        $dataMain   = CodeClass::classDetail($class, $type);
+        $data       = array_merge($data, $dataMain);
+        
+        
         // 20230620:备用字段
         // 方法数量
         $con = [];
@@ -498,69 +439,17 @@ class FrameCode {
         $data['module']         = $module;
         $data['controller']     = $controller;
         $data['action']         = $action;
-        // 不带注释方法
-        $code                       = self::actionFuncCode($module, $controller,$action, false);
-        // 带注释方法
-        $codeFull                   = self::actionFuncCode($module, $controller,$action, true);
-        // 注释
-        $comment                    = self::actionFuncComment($module, $controller,$action);
-        // 方法行数（不带注释）
-        $data['lines']              = Strings::lineCount($code);
-        // 20230616:带注释行数
-        $data['linesWithComment']   = Strings::lineCount($codeFull);
-
-        if($type == 'detail'){
-            $data['code']       = $code;
-            $data['codeFull']   = $codeFull;
-            // $data['comment']    = self::serviceFuncComment($service, $method);
-        }
-
-        // 注释
-        $commentArr         = FrameCode::parseComment($comment , '');
-        // 接口标题
-        $data['title']      = Arrays::value($commentArr, 'title');
-        // 接口描述
-        $data['describe']   = Arrays::value($commentArr, 'describe');
-        // 第三方参考文档url:比如，微信文档，阿里文档
-        $data['refUrl']     = Arrays::value($commentArr, 'refUrl');
-        $data['hasRefUrl']  = $data['refUrl'] ? 1: 0;
-        // TODO作者
-        $data['creater']     = Arrays::value($commentArr, 'creater');
-        $data['updater']     = Arrays::value($commentArr, 'updater');
-        $data['create_time'] = Arrays::value($commentArr, 'create_time');
-        $data['update_time'] = Arrays::value($commentArr, 'update_time');
-
+        
+        $class      = '\\app\\'.$module.'\\controller\\'.$controller;
+        // 20240418:提取主数据
+        $dataMain   = CodeClass::classMethodDetail($class, $action, $type);
+        $data = array_merge($data, $dataMain);
         // 20230711:方法调用次数
         $data['callCount']   = SystemLogService::controllerMethodCount($module, $controller, $action);
         
         return $data;
     }
-    /**
-     * 20230620:控制器提取代码
-     */
-    public static function actionFuncCode($module, $controller, $action, $withComment = false){
-        $class      = '\\app\\'.$module.'\\controller\\'.$controller;
-        $filePath   = self::classGetFilePath($class);
-        $code       = self::fileFuncCode($filePath, $action, $withComment);
-        return $code;
-    }
-    
-    /**
-     * 20230615：服务类方法，提取注释
-     * @param type $service
-     * @param type $method
-     */
-    public static function actionFuncComment($module, $controller, $action){
-        $class      = '\\app\\'.$module.'\\controller\\'.$controller;
-        $filePath   = self::classGetFilePath($class);
-        $comment    = self::fileFuncComment($filePath, $action);
-        return $comment;
-    }
-    
-    
-    
-    
-    
+
     /******* 供前台页面管理的分页数据 *****************/
     
     /**
@@ -624,7 +513,7 @@ class FrameCode {
             foreach ($modules as &$module) {
                 $arr[] = self::moduleDetail($module, 'list');
             }
-            return $arr;                        
+            return $arr;
         });
         return Arrays2d::listFilter($listsAll, $con);
     }

@@ -60,13 +60,6 @@ class Sql
         // 明细表查询条件
         $whereCon = ModelQueryCon::conditionParse($dtlCon);
         $sql    = "update ".$mainTable." as staticMain ";
-        /*
-        $dtlSql = "select sum(`" . $dtlStaticField . "`) as staticTotal," . $dtlUniField . " from " . $dtlTable;
-        if ( $whereCon ) {
-            $dtlSql .= " where ".$whereCon;
-        }
-        $dtlSql .= " group by ". $dtlUniField ;
-        */
         $dtlSql = "select 
                     ifnull(sum( b.`".$dtlStaticField."` ),0) AS staticTotal,
                     main.id as ".$dtlUniField." from ".$mainTable." as main left join ".$dtlTable." as b on main.id = b.".$dtlUniField; 

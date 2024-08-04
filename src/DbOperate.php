@@ -14,6 +14,9 @@ use Exception;
  */
 class DbOperate
 {
+    // 20231014表绑定类名：一般适用于分表
+    public static $bindServiceObj = [];
+    
     public static function createTableSql( $tableName ){
         $createTableSql = Db::cache(60)->query("show create table ". $tableName );
         return $createTableSql[0]['Create Table'];
@@ -27,11 +30,15 @@ class DbOperate
     {
         return in_array($tableName, self::allTableNames());
     }
+    
+    private static function allTableArrCacheKey(){
+        return __CLASS__.'::allTableArr';
+    }
     /**
      * 获取库中所有的数据表
      */
     public static function allTableArr(){
-        $cacheKey = __METHOD__;
+        $cacheKey = self::allTableArrCacheKey();
         return Cachex::funcGet($cacheKey, function(){
             $database     = config('database.database');
             $sql = "SELECT
@@ -55,6 +62,20 @@ class DbOperate
      */
     public static function allTableNames(){
         return array_column(self::allTableArr(), 'table');
+    }
+    
+    /**
+     * 20231019：所有的分表
+     */
+    public static function allSubTableNames($tableName){
+        $allTableNames = self::allTableNames();
+        $arr = [];
+        foreach($allTableNames as $table){
+            if(strpos($table, $tableName) !== false ){
+                $arr[] = $table;
+            }
+        }
+        return $arr;
     }
     /**
      * 20230728：数据需要写入文件缓存的表名
@@ -93,6 +114,10 @@ class DbOperate
      * 用于替代show columns from 的sql语句
      */
     public static function columns($tableName){
+        // 20230915:增加判断
+        if(!self::isTableExist($tableName)){
+            return [];
+        }
         $cacheFile = Runtime::tableColumnFileName($tableName);
         if(is_file($cacheFile)){
             return Runtime::dataFromFile($cacheFile);
@@ -101,27 +126,19 @@ class DbOperate
         // 没有缓存文件，按原方式提取
         $cacheKey = __CLASS__.__METHOD__;
         return Cachex::funcGet( $cacheKey.'_'.$tableName, function() use ($tableName){
-//            $database     = config('database.database');
-//            $sql = "SELECT
-//                    table_name,
-//                    column_name AS Field,
-//                    column_type AS Type,
-//                    is_nullable AS `Null`,
-//                    column_key AS `Key`,
-//                    column_default AS `Default`,
-//                    extra as Extra ,
-//                    COLUMN_COMMENT
-//                FROM
-//                    information_schema.`COLUMNS` 
-//                WHERE
-//                    table_schema = '".$database."' and TABLE_NAME = '".$tableName."'";
-//            $tableColumn = Db::query($sql);
-//            dump($tableColumn);
-//            
             // 20230905:尝试优化
-            $sql = 'DESCRIBE '.$tableName;
-            $tableColumn = Db::query($sql);
-
+            // $sql = 'DESCRIBE '.$tableName;
+            // $tableColumn = Db::query($sql);
+            
+            $sql = "select * from information_schema.COLUMNS "
+                    . "WHERE table_name ='" . $tableName . "'";
+            $tableColumn = Db::query( $sql );
+            foreach($tableColumn as &$v){
+                $v['Field']         = $v['COLUMN_NAME'];
+                // 字串最大长度
+                $v['charMaxLength'] = $v['CHARACTER_MAXIMUM_LENGTH'];
+            }
+            
             return $tableColumn;
         });
     }
@@ -143,7 +160,7 @@ class DbOperate
         $columns    = self::columns($tableName);
         $fieldArr   = [];
         foreach($columns as $key=>$value){
-            if($value['Extra'] != 'VIRTUAL GENERATED'){
+            if($value['EXTRA'] != 'VIRTUAL GENERATED'){
                 $fieldArr[] = $value['Field'];
             }
         }
@@ -180,7 +197,6 @@ class DbOperate
         }
         $indexNameK = $indexName ? "`".$indexName."`" : "";
         $sql = "ALTER TABLE `".$tableName."` ADD INDEX ". $indexNameK ."(`".$columnName."`)";
-
         $res = Db::query( $sql );
         return $res;                
     }
@@ -198,6 +214,10 @@ class DbOperate
     {
         if(!$tableName){
             return '';
+        }
+        // 20231014:有绑定取绑定
+        if(Arrays::value(self::$bindServiceObj, $tableName)){
+            return Arrays::value(self::$bindServiceObj, $tableName);
         }
 
         $res = explode('_',$tableName);
@@ -230,6 +250,65 @@ class DbOperate
         return $serviceArr[0];
     }
     /**
+     * 控制器和admKey取表
+     */
+    public static function controllerAdmKeyToTable($controller, $admKey){
+        $tableArr   = [];
+        $tableArr[] = lcfirst($controller);
+        if($admKey !='index'){
+            $tableArr[] = Strings::uncamelize($admKey);
+        }
+        return self::prefix().implode('_',$tableArr);
+    }
+    
+    /**
+     * 20231026：提取逻辑处理类库
+     * @param type $module  模块名：例order
+     * @param type $name    处理类名：例bao
+     * @return string
+     */
+    public static function getLogic( $module, $name )
+    {
+        if(!$module || !$name){
+            return '';
+        }
+        // BaoLogic
+        $logicName = ucfirst($name.'Logic');
+        
+        $logicArr[] = '\\app\\'.$module.'\\logic\\'.$logicName;
+        $logicArr[] = '\\xjryanse\\'.$module.'\\logic\\'.$logicName;            
+
+        foreach($logicArr as $serv){
+            if(class_exists($serv)){
+                return $serv;
+            }
+        }
+
+        return $logicArr[0];
+    }
+    /**
+     * 20240121：自定义单独使用traits的目录
+     */
+    public static function traitsDir($tableName){
+        $arr = explode('_',$tableName);
+        // 移除w
+        array_shift($arr);
+        // 移除order
+        array_shift($arr);
+        // array_shift();
+        // 空数组返回index
+        if(!$arr){
+            return 'index';
+        }
+        return Strings::camelize(implode('_',$arr));
+    }
+    /**
+     * 20231014:分表绑定类名；
+     */
+    public static function bindService($tableName, $service){
+        self::$bindServiceObj[$tableName] = $service;
+    }
+    /**
      * 当前表末条id
      * @param type $tableName
      */
@@ -249,7 +328,7 @@ class DbOperate
      * @param type $covData     转换参数
      * @return string
      */
-    public static function saveAllSql($tableName,$dataRaw,$covData=[])
+    public static function saveAllSql($tableName,$dataRaw,$covData=[], $isCover = false)
     {
         // 2022-11-27：只保留表有实字段
         $realFieldArr   = self::realFieldsArr($tableName);
@@ -282,8 +361,19 @@ class DbOperate
             $dataStr.= implode("','",$resVal);
             $dataStr.= "')";
         }
-        $sql = "INSERT IGNORE INTO ". $tableName ." (". $fieldStr .") 
-            VALUES ".$dataStr;
+        
+        if($isCover){
+            // 20231204:覆盖更新
+            $updateStrs = [];
+            foreach($fieldStrs as $ve){
+                $updateStrs[] = $ve.'= VALUES('.$ve.')';
+            }
+            $sql = "INSERT INTO ". $tableName ." (". $fieldStr .") 
+                VALUES ".$dataStr.' ON DUPLICATE KEY UPDATE '.implode(',',$updateStrs);
+        } else {
+            $sql = "INSERT IGNORE INTO ". $tableName ." (". $fieldStr .") 
+                VALUES ".$dataStr;
+        }
         return $sql;
     }
     /**
@@ -368,11 +458,11 @@ class DbOperate
         //防中文乱码
 //        $pdo->query("set names 'utf8'");
         $pdo->query("set names 'ANSI'");
-        Debug::debug('pdoQuery的sql',$sql);
+        Debug::dump('pdoQuery的sql',$sql);
         $rows = $pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
 
         return $rows;
-    }
+    }    
     /**
      * 应在控制器层最外循环结尾调用，并加事务
      * 如何解决锁的问题？？
@@ -381,6 +471,13 @@ class DbOperate
         Db::startTrans();
             global $glSaveData, $glUpdateData, $glDeleteData, $glSqlQuery;
             // dump($glUpdateData);
+            //【3】删除的数据
+            // 20230921:发现没删的写有bug，唯一约束
+            foreach($glDeleteData as $tableName=>$ids){
+                $con = [];
+                $con[] = ['id','in', array_unique($ids)];
+                Db::table($tableName)->where($con)->delete();
+            }
             //【1】保存的数据
             foreach($glSaveData as $tableName=>$dataArr){
                 //20220621;解决批量字段不同步bug                
@@ -404,15 +501,9 @@ class DbOperate
                     Db::table($tableName)->where('id',$id)->update($data);
                 }
             }
-            //【3】删除的数据
-            foreach($glDeleteData as $tableName=>$ids){
-                $con = [];
-                $con[] = ['id','in', array_unique($ids)];
-                Db::table($tableName)->where($con)->delete();
-            }
             //【4】执行自定义sql
-            $glSqlQuery = array_unique($glSqlQuery);
-            foreach($glSqlQuery as $sql){
+            $glSqlQueryU = array_unique($glSqlQuery);
+            foreach($glSqlQueryU as $sql){
                 Db::execute($sql);
             }
         Debug::debug('$glSaveData',$glSaveData,'DbOperate');
@@ -420,8 +511,26 @@ class DbOperate
         Debug::debug('$glDeleteData',$glDeleteData,'DbOperate');
         // exit;
         Db::commit();
+        // 20231116:执行完毕后清空
+        $glSaveData     = [];
+        $glUpdateData   = [];
+        $glDeleteData   = [];
+        $glSqlQuery     = [];
         return true;
     }
+    /**
+     * 增加一条全局执行sql
+     * @global array $glSqlQuery
+     * @param type $sql
+     * @return bool
+     */
+    public static function pushGlobalSql($sql){
+        global $glSqlQuery;
+        //扔一条sql到全局变量，方法执行结束后执行
+        $glSqlQuery[] = $sql;
+        return true;
+    }
+    
     /**
      * 是否在全局删除中
      */
@@ -437,6 +546,14 @@ class DbOperate
         global $glSaveData;
         $saveDatas = Arrays::value($glSaveData, $tableName, []);
         return in_array($id, array_column($saveDatas,'id'));
+    }
+    /**
+     * 20230914:提取指定数据表处于全局删除中的id
+     * @param type $tableName
+     */
+    public static function tableGlobalDeleteIds($tableName){
+        global $glDeleteData;
+        return Arrays::value($glDeleteData, $tableName,[]);
     }
     
     /****** 给框架用的 *********/
@@ -489,52 +606,29 @@ class DbOperate
     }
 
     /**
-     * 20230528：提取全系统配置数组（注入模式）
-baseClass: "xjryanse\customer\service\CustomerService"
-class: "xjryanse\customer\service\CustomerAnliService"
-keyField: "customer_id"
-master: true
-property: "customerAnli"
      * 
+     * @createTime 2023-05-28
+     * @param type $con
+     * @return type
      */
-//    public static function uniAttrConfArr($con = []){
-//        $cacheKey = __METHOD__;
-//        $listsAll = Cachex::funcGet($cacheKey, function(){
-//            $tables = self::allTableNames();
-//            $objAttrs = [];
-//            foreach($tables as $table){
-//                $service = self::getService($table);
-//                if (method_exists($service, 'uniAttrConfArr')) {
-//                    $tmpAttrs = $service::uniAttrConfArr();
-//                    $objAttrs = array_merge($objAttrs,$tmpAttrs);
-//                }
-//            }
-//            return $objAttrs;
-//        });
-//        return Arrays2d::listFilter($listsAll, $con);
-//    }
-    
     public static function uniAttrConfArr($con = []){
         $cacheKey = __METHOD__;
         $listsAll = Cachex::funcGet($cacheKey, function(){
             $fieldsArr = self::uniFieldsArr();
             $objAttrs = [];
             foreach($fieldsArr as $v){
-                $tmp                = [];
+                $tmp                = Arrays::getByKeys($v, ['thisTable','uniTable','property','existField']);
                 $tmp['baseClass']   = self::getService(Arrays::value($v, 'uniTable'));
                 $tmp['class']       = self::getService(Arrays::value($v, 'thisTable'));
                 $tmp['keyField']    = Arrays::value($v, 'field');
                 // TODO先默认主库
-                $tmp['master']      = true; 
-                $tmp['property']    = Arrays::value($v, 'property'); 
+                $tmp['master']      = 1; 
                 // 20230608：
-                $tmp['inList']      = Arrays::value($v, 'in_list');
-                $tmp['inStatics']   = Arrays::value($v, 'in_statics');
-                $tmp['inExist']     = Arrays::value($v, 'in_exist'); 
+                $tmp['inList']      = Arrays::value($v, 'in_list') ? 1 : 0;
+                $tmp['inStatics']   = Arrays::value($v, 'in_statics') ? 1 : 0;
+                $tmp['inExist']     = Arrays::value($v, 'in_exist') ? 1 : 0; 
                 // 20230726
                 $tmp['uniField']    = Arrays::value($v, 'uni_field' ,'id'); 
-                // 20230608
-                $tmp['existField']  = Arrays::value($v, 'existField'); 
                 // 20230807：匹配条件
                 $tmp['condition']   = Arrays::value($v, 'condition',[]); 
                 $objAttrs[]         = $tmp;
@@ -623,6 +717,17 @@ property: "customerAnli"
             $tService   = self::getService($thisTable);
             $tCon = [];
             $tCon[] = [$thisField,'=',$thisValue];
+            // 20230914：排除已删除，未指向的项目
+            $deletedIds = self::tableGlobalDeleteIds($thisTable);
+            if($deletedIds){
+                $tCon[] = ['id','not in',$deletedIds];
+            }
+            // 20231102:设置分表:固定用setConTable了
+            if(method_exists($tService::mainModel(), 'setConTable')){
+                $tService::mainModel()->setConTable($tCon);
+            }
+            // dump($tService::mainModel()->getTable());exit;
+            // 校验是否有数据
             $count = $tService::where($tCon)->count();
             if($count){
                 $msgRaw = Arrays::value($field, 'del_msg','数据已使用不可删');
@@ -634,6 +739,15 @@ property: "customerAnli"
             }
         }
         return true;
+    }
+    
+    public static function checkCanDeleteBatch($tableName, $id ){
+        if(!is_array($id)){
+            $id = [$id];
+        }
+        foreach($id as $i){
+            self::checkCanDelete($tableName, $i);
+        }
     }
     /**
      * 
@@ -669,4 +783,196 @@ property: "customerAnli"
         array_push($arr,'exist');
         return Strings::camelize(implode('_',$arr));
     }
+    /**
+     * 20231014：字段异常抛出
+     * @param type $table
+     * @param type $record
+     * @param type $field
+     */
+    public static function fieldErr($table,$record,$field){
+        throw new Exception('数据异常:'.$table.':'.$record.':'.$field);
+    }
+    /**
+     * 20231014:复制某表结构，一般用于创建分表
+     */
+    public static function copyTableStruct($table, $newTableName){
+        $sql = 'CREATE TABLE '.$newTableName.' LIKE '.$table;
+        $res = Db::query( $sql );
+        // 清理数据表全量缓存
+        Cachex::rm(self::allTableArrCacheKey());
+        return $res;
+    }
+    
+    /**
+     * 取分表(进行一系列创建，绑定等动作)
+     * @createTime 2023-10-14
+     * @param string $rawTable  源表
+     * @param type $subFix      后缀
+     * @throws Exception
+     */
+    public static function getSepTable($rawTable, $subFix){
+        if(!$rawTable){
+            throw new Exception('源表不存在:'.$rawTable);
+        }
+        $table = $rawTable;
+        if(!$subFix){
+            return $table;
+        }
+
+        $table .= '_'.$subFix;
+        // 20231014:绑定类名为源表类，避免找不到
+        $rawService = self::getService($rawTable);
+        self::bindService($table, $rawService);
+
+        if(!self::isTableExist($table)){
+            // 复制数据表结构
+            self::copyTableStruct($rawTable, $table);
+        }
+
+        return $table;
+    }
+    /**
+     * 保留数据表有的字段条件（关联表内查字段）
+     * 仅适用标准查询条件
+     * @createTime 2023-10-20
+     */
+    public static function keepHasFieldCon($con, $tableName){
+
+        foreach($con as $k=>$v){
+            if(!self::hasField($tableName, $v[0])){
+                unset($con[$k]);
+            }
+        }
+
+        return $con;
+    }
+    /**
+     * 20231207:比service类方法更加灵活
+     * @param type $key
+     * @param type $keyIds
+     * @param type $sumField
+     * @param type $con
+     * @return type
+     */
+    public static function groupBatchSum($tableSql, $key, $keyIds, $sumField, $con = []) {
+        $con[] = [$key, 'in', $keyIds];
+//        if (self::mainModel()->hasField('is_delete')) {
+//            $con[] = ['is_delete', '=', 0];
+//        }
+
+        return Db::table($tableSql)->where($con)->group($key)->column('sum(' . $sumField . ')', $key);
+    }
+    /**
+     * 20240104：生成关联查询sql
+        $arr[] = ['table_name'=>'w_system_company_dept','alias'=>'tA'];
+        $arr[] = ['table_name'=>'w_system_company_job','alias'=>'tB','join_type'=>'inner','on'=>'tA.id=tB.dept_id'];
+     * @param type $fields
+     * @param type $arr
+     * @param type $groupFields
+     * @return string
+     */
+    public static function generateJoinSql($fields, $arr = [], $groupFields = [], $con = [], $orderBy = '', $whereFields = [], $havingFields = []){
+//        $arr[] = ['table_name'=>'w_system_company_dept','alias'=>'tA'];
+//        $arr[] = ['table_name'=>'w_system_company_job','alias'=>'tB','join_type'=>'inner','on'=>'tA.id=tB.dept_id'];
+        $tSql = self::generateJoinTable($arr);
+        
+        if($con){
+            $whereFields[]     = ModelQueryCon::conditionParse($con);
+        }
+        // 20240122
+        if($whereFields){
+            $tSql   .= ' where '.implode(' and ', $whereFields);
+        }
+
+        // 聚合
+        $groupStr = $groupFields ? implode(',',$groupFields) : '';
+        if($groupStr){
+            $tSql .= ' group by '. $groupStr;
+        }
+        
+        // 20240126
+        if($havingFields){
+            // dump($havingFields);
+            $tSql   .= ' having '.implode(' and ', $havingFields);
+        }
+
+        // 返回字段
+        $fieldStr = $fields ? implode(',',$fields) : '*';
+
+        $sqlFinal = 'select '.$fieldStr. ' from '. $tSql ;        
+        if($orderBy){
+            $sqlFinal .= ' order by '. $orderBy;
+        }
+        // Debug::dump($sqlFinal);
+
+        return $sqlFinal;
+    }
+    /**
+     * 只生成关联表
+     * 20240107
+     * @param type $fields
+     * @param type $arr
+     * @param type $groupFields
+     * @param type $con
+     * @param type $orderBy
+     * @return string
+     */
+    private static function generateJoinTable($arr = []){
+//        $arr[] = ['table_name'=>'w_system_company_dept','alias'=>'tA'];
+//        $arr[] = ['table_name'=>'w_system_company_job','alias'=>'tB','join_type'=>'inner','on'=>'tA.id=tB.dept_id'];
+
+        $tSql = '';
+        foreach($arr as $v){
+            if(Arrays::value($v, 'join_type')){
+                $tSql .= ' '. $v['join_type'] .' join ';
+            }
+            $tSql .= $v['table_name'];
+            if($v['alias']){
+                $tSql .= ' as '. $v['alias'] .' ';
+            }
+            if(Arrays::value($v, 'on')){
+                $tSql .= ' on '. $v['on'] .' ';
+            }
+        }
+
+        return $tSql;
+    }
+    
+    /**
+     * 生成关联的union语句
+     * @param type $tables    ['table1','table2','table3'];
+     * @param type $fieldArr    [
+     *      'id'    =>['id','id','id']
+     *      'bus_id'=>['bus_id','bus_id','bus_id']
+     * ]
+     * @param type $whereArr
+     */
+    public static function generateUnionSql($tables, $fieldArr, $whereArr = [], $groupFields = []){
+        $sqlArr = [];
+        foreach($tables as $i=> $table){
+            // 20240323:当i不是数字时，表示是表别名
+            $alias  = is_numeric($i) ? 't'.$i : $i;
+            $fields = [];
+            // 字段
+            foreach($fieldArr as $k=>$v){
+                $fields[] = $v[$i] . ' as ' . $k;
+            }
+            // 条件
+            $con = isset($whereArr[$i]) ? $whereArr[$i] : [] ;
+            $inst = Db::table($table)->alias($alias)->where($con)->field(implode(',',$fields));
+            // 20240429
+            $groupFArr = isset($groupFields[$i]) ? $groupFields[$i] : [] ;
+            // 聚合
+            $groupStr = $groupFArr ? implode(',',$groupFArr) : '';
+            if($groupStr){
+                $inst->group($groupStr);
+            }
+            
+            $sqlArr[] = $inst->buildSql();
+        }
+
+        return '('.implode(' union ', $sqlArr).')';
+    }
+    
+    
 }

@@ -3,6 +3,7 @@ namespace xjryanse\logic;
 
 use think\facade\Request;
 use think\facade\Cache;
+use think\Db;
 use Exception;
 /**
  * 调试复用
@@ -12,6 +13,7 @@ class Debug
     //输出调试变量
     public static function debug($name='',$value='',$group='')
     {
+        //  || self::isDevIp()
         if ( self::isDebug() && self::isGroupMatch($group)) {
             echo $name;
             dump($value);                
@@ -39,16 +41,63 @@ class Debug
      */
     public static function testThrow()
     {
-        throw new Exception('测试中……');
+        if(self::isDevIp()){
+            throw new Exception('测试中……');
+        }
     }
     /**
      * 调试模式下输出
      */
-    public static function dump($data){
+    public static function dump($data, $data2 = ''){
         if(self::isDevIp()){
             dump($data);
+            if($data2){
+                dump($data2);
+            }
         }
     }
+    /*
+     * 20240419:打印结束流程：调试永
+     */
+    public static function dumpExit($data, $data2= ''){
+        if(self::isDevIp()){
+            self::dump($data,$data2);
+            exit;
+        }
+    }
+    
+    /**
+     * 打印全部sql
+     */
+    public static function dumpAllSql(){
+//        $allSqls = Db::getAllQueryLog();
+//        foreach ($allSqls as $query) {
+//            echo $query['sql']; // 逐条输出每条执行的SQL语句
+//        }
+    }
+    
+    /**
+     * 20240725:打印全局sql,一般用于开发调试
+     * @global type $glSaveData
+     * @global type $glUpdateData
+     * @global type $glDeleteData
+     * @global array $glSqlQuery
+     */
+    public static function dumpGlobalSql(){
+        global $glSaveData, $glUpdateData, $glDeleteData, $glSqlQuery;
+        if(self::isDevIp()){
+            dump('$glSaveData');
+            dump($glSaveData);
+            dump('$glUpdateData');
+            dump($glUpdateData);
+            dump('$glDeleteData');
+            dump($glDeleteData);
+            dump('$glSqlQuery');
+            dump($glSqlQuery);
+        }
+    }
+
+    
     /**
      * 
      */

@@ -26,6 +26,16 @@ class Datetime
         return $dateArr;
     }
     /**
+     * 20240511：指定月份有几天
+     * @param type $month
+     */
+    public static function monthlyDateCount($month){
+        $startTime = date('Y-m-01 00:00:00',strtotime($month));
+        // 最后一天的日期为天数
+        return date('d',strtotime($startTime.' +1 month -1 day'));
+    }
+
+    /**
      * 传月份输出每一天
      */
     public static function monthlyDates($month){
@@ -81,7 +91,19 @@ class Datetime
         $endTime    = $year.'-12-31 23:59:59';
         return [$startTime,$endTime];
     }
-    
+    /**
+     * 20240404:周提取日期范围
+     * @param type $yearweek
+     */
+    public static function weeklyScopeTimes($yearweek){
+        $year = mb_substr($yearweek, 0, 4);
+        $week = mb_substr($yearweek, 4, 2);
+
+        return [date("Y-m-d H:i:s",strtotime('+'.$week.' monday',strtotime($year.'-01-01')))
+            ,date("Y-m-d H:i:s",strtotime('+'.($week + 1).' monday',strtotime($year.'-01-01'))- 1)
+        ];
+    }
+
     /**
      * 20230509：提取年份开始时间
      */
@@ -101,6 +123,7 @@ class Datetime
     public static function dateStartTime($date){
         return date('Y-m-d 00:00:00',strtotime($date));
     }
+
     /**
      * 20230509：日期结束时间
      * @param type $date
@@ -108,6 +131,14 @@ class Datetime
      */
     public static function dateEndTime($date){
         return date('Y-m-d 23:59:59',strtotime($date));
+    }    
+    /**
+     * 20231106：获取日期的开始时间，结束时间范围
+     */
+    public static function dateScopeTimes($date){
+        $startTime  = self::dateStartTime($date);
+        $endTime    = self::dateEndTime($date);
+        return [$startTime,$endTime];
     }
 
     /**
@@ -204,7 +235,24 @@ class Datetime
      */
     public static function isDate($dateStr){
         $preg = '/^([12]\d\d\d)-(0?[1-9]|1[0-2])-(0?[1-9]|[12]\d|3[0-1])$/';
-        return preg_match($preg, $dateStr);
+        $isDate = preg_match($preg, $dateStr);
+        if(!$isDate){
+            return false;
+        }
+        // 2024-02-27:处理2024-06-31日的
+        $dateArr    = explode('-',$dateStr);
+        $date       = $dateArr[2];
+        return $date == date('d',strtotime($dateStr));
+    }
+    
+    /**
+     * 变量是否年份
+     * @createTime 2023-10-14
+     * @param type $year
+     * @return type
+     */
+    public static function isYear($year){
+        return preg_match('/^\d{4}$/', $year) && $year > 1900 && $year < 2099;
     }
     /**
      * 剩余天数
@@ -245,6 +293,31 @@ class Datetime
         return $con;
     }
 
+    /**
+     * 年时间条件
+     * @createTime 2023-10-28
+     * @param type $key         字段key
+     * @param type $year        年
+     * @param type $month         月
+     * @return type
+     */
+    public static function yearTimeCon( $key ,$year, $month = '')
+    {
+        $con = [];
+        if( $month ){
+            $yearmonth  = $year.'-'.$month;
+            $startDate  = date('Y-m-01 00:00:00',strtotime($yearmonth));
+            $endDate    = date('Y-m-d 23:59:59',strtotime($yearmonth ." +1 month -1 day"));
+        } else {
+            //②年月，必有
+            $startDate  = $year.'-01-01 00:00:00';
+            $endDate    = $year.'-12-31 23:59:59';
+        }
+        $con[] = [ $key ,'>=',$startDate];
+        $con[] = [ $key ,'<=',$endDate];
+        return $con;
+    }
+    
     /**
      * 20230721:分钟差
      * @param type $time
@@ -369,6 +442,8 @@ class Datetime
      * 例如：2023-05-18 08:00 至 12:00
      */
     public static function scopeTimeStr($startTime, $endTime){
+        
+        
         // 同一天，只保留时；分         2023年5月18日10:00至12:00
         // 跨天不跨月，保留日时分；     2023年5月18日10:00至19日12:00
         // 跨月不跨年，保留月日时分；   2023年5月18日10:00至6月1日12:00
@@ -377,11 +452,24 @@ class Datetime
         $startDay   = date('Y-m-d',strtotime($startTime));
         $startMonth = date('Y-m',strtotime($startTime));
         $startYear  = date('Y',strtotime($startTime));
-
+        // 
         $endDay   = date('Y-m-d',strtotime($endTime));
         $endMonth = date('Y-m',strtotime($endTime));
         $endYear  = date('Y',strtotime($endTime));
+        // 如果是当月的1号至当月的最后一天，直接返回月份
+        if($startMonth == $endMonth 
+                && strtotime($startTime) == strtotime(self::monthStartTime($startMonth))
+                && strtotime($endTime) == strtotime(self::monthEndTime($endMonth))){
+            return date('Y年m月',strtotime($startTime));
+        }
+        // 如果是当年的1月1号至当年的12月31号，返回年份
+        if($startYear == $endYear 
+                && strtotime($startTime) == strtotime(self::yearStartTime($startYear))
+                && strtotime($endTime) == strtotime(self::yearEndTime($endYear))){
+            return $startYear.'年';
+        }
         
+        // 返回时间段描述
         $endStr = '';
         // 同一天，只保留时；分         2023年5月18日10:00至12:00
         if($startDay == $endDay){
@@ -403,6 +491,24 @@ class Datetime
 
         return $endStr ? $startStr.'至'.$endStr : $startStr;
     }
+    
+    /**
+     * 时间范围，转查询条件
+     * @param type $key
+     * @param type $timeScope 时间范围：[开始时间,结束时间]
+     * @return string
+     */
+    public static function scopeTimeCon( $key ,$timeScope)
+    {
+        if(!$timeScope){
+            return [];
+        }
+        $con   = [];
+        $con[] = [ $key ,'>=',$timeScope[0]];
+        $con[] = [ $key ,'<=',$timeScope[1]];
+        return $con;
+    }
+    
     /**
      * 日期延期：
      * 传入延期天数；开始时间，返回结束时间
@@ -412,4 +518,147 @@ class Datetime
         $endTimeStamp   = $startTimeStamp + $days * 86400;
         return date('Y-m-d H:i:s',$endTimeStamp);
     }
+    /**
+     * 计算时间状态：
+     * @createTime 2023-10-12
+     * @param type $time
+     * @param type $scopeTime
+     */
+    public static function calTimeState($time,$scopeTime){
+        if($scopeTime[0] && $time <= $scopeTime[0]){
+            // 未开始
+            return 0;
+        }
+        if($scopeTime[1] && $time >= $scopeTime[1]){
+            // 已结束
+            return 2;
+        }
+        // 进行中
+        return 1;
+    }
+    /**
+     * 计算年龄，周岁
+     */
+    public static function calAge($birthday, $time){
+        return self::calTimeState($birthday, $time, 1);
+    }
+    
+    /**
+     * 计算年份差20240602
+     * @param type $startTime
+     * @param type $time
+     * @param type $subCount 几位小数点
+     * @return type
+     */
+    public static function calDiffYears($startTime, $time, $subCount = 1){
+        $bTimestamp = strtotime($startTime);
+        $cTimestamp = strtotime($time);
+        $ageInSeconds = $cTimestamp - $bTimestamp;
+        $ageInYears = $ageInSeconds / (60 * 60 * 24 * 365.25);
+
+        // 保留一位小数点
+        return number_format($ageInYears, $subCount);
+    }
+    
+    /**
+     * 20231215：参数转时间范围
+     * 优先级：yearmonthDate > yearmonth > year
+     * @param type $param
+     * @return type
+     */
+    public static function paramScopeTime($param){
+        if(Arrays::value($param, 'yearmonthDate')){
+            return self::dateScopeTimes($param['yearmonthDate']);
+        }
+        if(Arrays::value($param, 'yearmonth')){
+            // 20240115
+            $yearmonth = Arrays::value($param, 'yearmonth');
+            $date = Arrays::value($param, 'date');
+            if(!$date){
+                return self::monthlyScopeTimes($param['yearmonth']);
+            } else {
+                return self::dateScopeTimes($yearmonth.'-'.$date);
+            }
+        }
+        if(Arrays::value($param, 'year')){
+            return self::yearlyScopeTimes($param['year']);
+        }
+        // 20240404
+        if(Arrays::value($param, 'yearweek')){
+            return self::weeklyScopeTimes($param['yearweek']);
+        }
+
+        return [];
+    }
+    
+    /**
+     * 20240326：用于合并结果
+     */
+    public static function paramTimeDataForMerge($param, $timeField = ''){
+        if($timeField && is_array(Arrays::value($param, $timeField))){
+            $scopeTimeArr = $param[$timeField];
+        } else {
+            $keys = ['yearmonthDate','yearmonth','year','date'];
+            $data = Arrays::getByKeys($param, $keys);
+
+            $scopeTimeArr   = Datetime::paramScopeTime($param);
+        }
+        
+        // 20240326:方便表间传参
+        $data['DTScopeTimeArr'] = $scopeTimeArr;
+        $data['DTStartTime']    = Arrays::value($scopeTimeArr, 0);
+        $data['DTEndTime']      = Arrays::value($scopeTimeArr, 1);
+        //日期字符串，用于展示
+        $data['DTDateStr']      = $scopeTimeArr ? self::scopeTimeStr($scopeTimeArr[0], $scopeTimeArr[1]) : '全部';
+        
+        return $data;
+    }
+
+    /**
+     * 日期规整；
+     * 处理前台乱传参
+     */
+    public static function dateRegularize($date){
+        if(!$date){
+            return '';
+        }
+        if($date == '长期'){
+            return '2199-12-31';
+        }
+
+        //处理：2023.1.1
+        $dateN = str_replace('.', '-', $date);
+        // 处理2023年1月；2023年1月1日
+        $dateN = str_replace('年', '-', $dateN);
+        $dateN = str_replace('月', '-', $dateN);
+        $dateN = str_replace('日', '', $dateN);
+        
+        $arr = explode('-',$dateN);
+        // 处理23.1.1
+        if($arr[0] < 50){
+            $arr[0] = 2000 + $arr[0];
+        } else if($arr[0] < 100){
+            $arr[0] = 1900 + $arr[0];
+        }
+        
+        // 处理只传年份，或只传年月的数据
+        for($i=0;$i<3;$i++){
+            if(!isset($arr[$i]) || !$arr[$i]){
+                $arr[$i] = '01';
+            }
+        }
+
+        return implode('-',$arr);
+    }
+
+    /**
+     * 日期时间规整；
+     * 处理前台乱传参
+     */
+    public static function dateTimeRegularize($datetime){
+        //TODO:待写的逻辑
+
+        return $datetime;
+    }
+    
 }

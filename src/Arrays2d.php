@@ -2,9 +2,7 @@
 namespace xjryanse\logic;
 
 use xjryanse\logic\Arrays;
-
 use xjryanse\system\service\SystemFileService;
-use think\Db;
 /**
  * 二维数组处理逻辑
  */
@@ -133,6 +131,16 @@ class Arrays2d
     public static function fieldSetKey( $array,$keyField){
         return $array ? array_column($array,null,$keyField) : [];
     }
+    /*
+     * 将某个字段设为key，列表成为数组
+     */
+    public static function fieldSetKeyArr( $array,$keyField){
+        $arr = [];
+        foreach($array as $v){
+            $arr[$v[$keyField]][] = $v;
+        }
+        return $arr;
+    }
     /**
      * 转一维键值对
      */
@@ -172,6 +180,16 @@ class Arrays2d
         return $dataArr;
     }
     /**
+     * 按条件统计数量
+     * @createTime 2023-09-13
+     * @param type $listsAll
+     * @param type $con
+     * @return type
+     */
+    public static function listCount($listsAll, $con = [] ){
+        return count(self::listFilter($listsAll, $con));
+    }
+    /**
      * 列表数据过滤,取单条
      * @param type $listsAll 二维数组数据
      * @param type $con     过滤条件（兼容数据库查询）
@@ -184,6 +202,40 @@ class Arrays2d
         }
         return [];
     }
+    /**
+     * 键值对查询是否存在
+     * 2023-09-15
+     * @param array $listsAll
+     * @param type $key
+     * @param type $value
+     */
+    public static function listFindByField(array $listsAll, $key, $value){
+        $con    = [];
+        $con[]  = [$key,'=',$value];
+        return self::listFind($listsAll, $con);
+    }
+
+    /**
+     * 查某列的最大值，取整行数据
+     * @param type $listsAll
+     * @param type $con
+     */
+    public static function maxFind( $listsAll, $judgeField, $con = [] ){
+        $arrays = self::listFilter($listsAll, $con);
+        $arr = self::sort($arrays, $judgeField, 'desc');
+        return $arr ? $arr[0] : [];
+    }
+    /**
+     * 查某列的最小值，取整行数据
+     * @param type $listsAll
+     * @param type $con
+     */
+    public static function minFind( $listsAll, $judgeField, $con = [] ){
+        $arrays = self::listFilter($listsAll, $con);
+        $arr = self::sort($arrays, $judgeField, 'asc');
+        return $arr ? $arr[0] : [];
+    }
+
     /**
      * 排序
      */
@@ -203,6 +255,12 @@ class Arrays2d
      * 求和
      */
     public static function sum( $array, $field){
+        // 20240531处理0值
+        foreach($array as &$v){
+            if(!Arrays::value($v, $field)){
+                $v[$field] = 0;
+            }
+        }
         return array_sum(array_column($array, $field));
     }
     
@@ -213,6 +271,18 @@ class Arrays2d
      */
     public static function uniqueColumn($arr, $field){
         return array_unique(array_column($arr, $field));
+    }
+    /**
+     * 提取二维数组唯一值
+     */
+    public static function unique($arr){
+        $r = [];
+        foreach($arr as $v){
+            $kJ     = json_encode($v);
+            $k      = md5($kJ).sha1($kJ);
+            $r[$k]  = $v;
+        }
+        return array_values($r);
     }
     
     /***以下部分有耦合SystemFileService类，和db方法，是否进行拆分比较科学？？20220305******************************************************************/
@@ -244,7 +314,7 @@ class Arrays2d
                     // 20220807，非字符串不转
                     $v[$picField] = isset($picObj[$v[$picField]]) ? $picObj[$v[$picField]] : [];
                 }
-            }            
+            }
         }
 
         return $data;
@@ -393,11 +463,86 @@ class Arrays2d
         $trees = [];
         foreach ($arr as $item) {
             $iName = $item[$pidname] ? : '';
-            if( $iName == $pid ){
-                $item[$child] = self::makeTree($arr,$item['id'], $pidname, $child);
-                $trees[] = $item;
+            if( $iName != $pid ){
+                continue;
             }
+            $sItem = self::makeTree($arr,$item['id'], $pidname, $child);
+            if($sItem){
+                $item[$child] = $sItem;
+            }
+            $trees[] = $item;
         }
+
         return $trees;
     }
+    /**
+     * 二维数组统一添加数据
+     * 20230912
+     * @param type $arr
+     * @param type $data    一维数组
+     */
+    public static function addData(&$arr, $data = []){
+        foreach($arr as &$v){
+            $v = $data ? array_merge($v,$data) : $v;
+        }
+        return $arr;
+    }
+
+    /**
+     * 二维，对象取值
+     * @param type $arrObj  二维对象，一般是fieldSetKey处理后的结果
+     * @param type $key     key值
+     * @param type $field   第二层的字段值
+     * @param type $default 取不到结果时的默认值
+     * @return type
+     */
+    public static function objKeyFieldGet(&$arrObj, $key, $field, $default = ''){
+        return Arrays::value($arrObj,$key) 
+            ? Arrays::value($arrObj[$key], $field)
+            : $default;
+    }
+    
+    /**
+     * 计算求和数组（列表底部的求和）
+     */
+    public static function calSumArray($list, $sumFields){
+        $sumData = [];
+        foreach($sumFields as $sumField){
+            $sumData[$sumField] = Arrays::sum(array_column($list, $sumField));
+        }
+        return $sumData;
+    }
+    
+    /**
+     * 20240106-拼接时间字段
+     * 与Datetime的paramScopeTime一致
+     * 
+     */
+    public static function pushTimeField(&$listArr, $param){
+        foreach($listArr as &$v){
+            if(Arrays::value($param, 'yearmonthDate')){
+                $v['yearmonthDate'] = $param['yearmonthDate'];
+            }
+            if(Arrays::value($param, 'yearmonth')){
+                $v['yearmonth'] = $param['yearmonth'];
+            }
+            if(Arrays::value($param, 'year')){
+                $v['year'] = $param['year'];
+            }        
+        }
+        return $listArr;
+    }
+    /**
+     * 
+     * @param type $listArr
+     */
+    public static function pushDataFields (&$listArr, $param, $fields) {
+        foreach($listArr as &$v){
+            foreach($fields as $f){
+                $v[$f] = Arrays::value($param, $f);
+            }
+        }
+        return $listArr;        
+    }
+    
 }

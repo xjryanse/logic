@@ -144,5 +144,12 @@ class Gps {
         }
         return round($s, $decimal);
     }
-
+    /**
+     * 20231114:计算key
+     * @return type
+     */
+    public static function regeoKey($lon,$lat){
+        return hash('sha256', $lon.$lat);
+    }
+    
 }

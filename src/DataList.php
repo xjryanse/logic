@@ -20,7 +20,7 @@ class DataList
      * @param type $typesArr
      * @return int
      */
-    public static function toYearlyData($year, $listsArr, $groupFields, $typeFieldName, $typesArr){
+    public static function toYearlyData($year, $listsArr, $groupFields, $typeFieldName, $typesArr,$isSum=true){
         if(is_string($groupFields)){
             $groupFields = [$groupFields];
         }
@@ -64,11 +64,13 @@ class DataList
      * @param type $typesArr
      * @return int
      */
-    public static function toMonthlyData($yearmonth, $listsArr, $groupFields, $typeFieldName, $typesArr){
+    public static function toMonthlyData($yearmonth, $listsArr, $groupFields, $typeFieldName, $typesArr, $isSum=true){
         if(is_string($groupFields)){
             $groupFields = [$groupFields];
         }
+        // Debug::dump($listsArr);
         $dataArr = self::listToObj($listsArr, $groupFields, ['yearmonth','date']);
+        // Debug::dump($dataArr);
         //$customerIds = array_unique(array_column($listsArr, $groupField));
         $customerInfoArr = array_unique(Arrays2d::getByKeys($listsArr, $groupFields), SORT_REGULAR);
         //③数据组装
@@ -80,20 +82,22 @@ class DataList
                 $tmpData[$groupField]   = $cust[$groupField];
             }
             $tmpData['yearmonth']   = $yearmonth;
-            $dataRes                = array_merge($dataRes, DataList::dataSplitDayArr($dataArr, $typeFieldName, $typesArr, $tmpData));
+            $dataRes                = array_merge($dataRes, DataList::dataSplitDayArr($dataArr, $typeFieldName, $typesArr, $tmpData, $isSum));
         }
         //③数据求和
-        $sumData = [];
-        for($i = 1;$i<=31;$i++){
-            $sumData['d'.$i] = Arrays::sum(array_column($dataRes, 'd'.$i));
+        if($isSum){
+            $sumData = [];
+            for($i = 1;$i<=31;$i++){
+                $sumData['d'.$i] = Arrays::sum(array_column($dataRes, 'd'.$i));
+            }
+            // 2022-11-18:单个才求和
+            if(!is_array($typesArr) || count($typesArr) == 1){
+                // $sumData['sum'] = array_sum(array_column($dataRes, 'sum'));
+                $sumData['sum'] = Arrays::sum(array_column($dataRes, 'sum'));
+            }
+
+            $res['sumData']         = $sumData;
         }
-        // 2022-11-18:单个才求和
-        if(!is_array($typesArr) || count($typesArr) == 1){
-            // $sumData['sum'] = array_sum(array_column($dataRes, 'sum'));
-            $sumData['sum'] = Arrays::sum(array_column($dataRes, 'sum'));
-        }
-        
-        $res['sumData']         = $sumData;
         $res['data']            = $dataRes;
         $res['withSum']         = 1;
         return $res;
@@ -135,13 +139,13 @@ class DataList
         return $dataRes;
     }
     
-        /**
+    /**
      * 将数据拆分成
      * @param type $dataArr         一维数据数组
      * @param type $typeFieldName   字段类型名:eg:moneyType
      * @param type $typesArr        字段类型数组
      */
-    public static function dataSplitDayArr($dataArr, $typeFieldName, $typesArr, $tmpData = []){
+    public static function dataSplitDayArr($dataArr, $typeFieldName, $typesArr, $tmpData = [], $isSum=true){
         if(!$typesArr){
             return [];
         }
@@ -151,6 +155,7 @@ class DataList
 
         $dataRes = [];
         foreach($typesArr as $mT){
+
             $tmp = $tmpData;
             // $tmp['customer_id'] = $customerId;
             // $tmp['year']        = $year;
@@ -164,10 +169,16 @@ class DataList
                 // 2023-01-12：拼接月份数组
                 $month          = str_pad($i, 2, 0, STR_PAD_LEFT);
                 $key            = $keyPreStr.'_'.$month;
+
                 $tmp['d'.$i]    = Arrays::value($dataArr, $key) ? $dataArr[$key][$mT] : 0;
-                $sum1000 += $tmp['d'.$i] * 1000;
+                // 20240511
+                if($isSum && is_numeric($tmp['d'.$i])){
+                    $sum1000 += $tmp['d'.$i] * 1000;
+                }
             }
-            $tmp['sum'] = $sum1000 / 1000;
+            if($isSum){
+                $tmp['sum'] = $sum1000 / 1000;
+            }
             $dataRes[] = $tmp;
         }
         return $dataRes;
@@ -250,4 +261,83 @@ class DataList
 
         return $instValues;
     }
+    /**
+     * 聚合成线性的数据，主要用于列转行，方便前端编辑
+     * 20240531
+     * @param type $listsArr    原始数据列表
+     * @param type $colField    列字段
+     * @param type $rowField    行字段
+     * @param type $valField    值字段
+     */
+    public static function toLinelyData($listsArr, $colField, $rowField, $valField, $colAll, $isSum=false){
+        $res['data'] = self::toLinelyArr($listsArr, $colField, $rowField, $valField, $colAll, $isSum);
+
+        return $res;
+    }
+
+    
+    /**
+     * 聚合成线性的数据，主要用于列转行，方便前端编辑
+     * 20240531
+     * @param type $listsArr    原始数据列表
+     * @param type $colField    列字段
+     * @param type $rowField    行字段
+     * @param type $valField    值字段
+     * @param type $colAll      全部列
+     * @return type
+     */
+    private static function toLinelyArr($listsArr, $colField, $rowField, $valField, $colAll = [], $isSum=false){
+        $colFArr = explode(',',$colField);
+        
+        //【1】拼接成键值数据
+        $listObj = [];
+        foreach($listsArr as $v){
+            //对应第二步key
+            $keyArr          = [];
+            foreach($colFArr as $cf){
+                $keyArr[] = $v[$cf];
+            }
+            $key = implode('_', $keyArr).'_'.$v[$rowField];
+            //对应第二步key
+            // $key            = $v[$colField].'_'.$v[$rowField];
+            $listObj[$key]  = Arrays::value($v, $valField);
+        }
+        //【2】组合列行数据
+        $colUnique = $colAll ? : Arrays2d::unique(Arrays2d::getByKeys($listsArr, $colFArr));
+        // 行
+        $rows = Arrays2d::uniqueColumn($listsArr, $rowField);
+
+        $arr = [];
+        foreach($colUnique as $cu){
+            $keyArr          = [];
+            foreach($colFArr as $cf){
+                $keyArr[] = $cu[$cf];
+            }
+
+        // foreach($cols as $c){
+            $tmp            = $cu;
+            // $tmp[$colField] = $c;
+            $sum1000 = 0;
+            foreach($rows as $r){
+                $key = implode('_', $keyArr).'_'.$r;
+                
+                // 对应第一步key
+                // $key            = $c.'_'.$r;
+                $value          = Arrays::value($listObj, $key);
+                $tmp['l'.$r]    = is_numeric($value) ? number_format($value,0,'.','') : $value;
+                // 20240511
+                if($isSum && is_numeric($tmp['l'.$r])){
+                    $sum1000 += $tmp['l'.$r] * 1000;
+                }
+            }
+            if($isSum){
+                $tmp['sum'] = $sum1000 / 1000;
+            }
+            $arr[] = $tmp;
+        }
+        
+        return $arr;
+    }
+    
+    
 }

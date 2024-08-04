@@ -55,7 +55,7 @@ class Runtime
         $columns    = DbOperate::columns($tableName);
         // 保存路径
         $filePath = self::tableColumnFileName($tableName);
-        self::dataToFile($columns, $filePath);
+        return self::dataToFile($columns, $filePath);
     }
     /**
      * 缓存数据写入文件

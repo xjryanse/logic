@@ -88,4 +88,36 @@ class SnowFlake
         $microTime = self::timeFromParticle($particle);   
         return intval($microTime / 1000);
     }
+    
+    
+    /* 
+     * 以下是改进逻辑-前4位用年份替换，便利按时间分表（注：使用改进逻辑后，部分反向方法受限，例如获取时间戳）
+     * 20231104
+     */
+    /**
+     * 雪花id，前4位用年份替换
+     * @param type $year
+     */
+    public static function generateParticleWithYear($year = ''){
+        if(!$year){
+            $year = date('Y');
+        }
+        $newId = self::generateParticle();
+        return substr_replace($newId, $year, 0, 4);
+    }
+    /**
+     * 计算年份
+     * @param type $id
+     */
+    public static function getYear($id){
+        //先提取前4位置
+        $year       = substr($id, 0, 4);
+        if($year > 1900 && $year <=2100){
+            return $year;
+        }
+        // 不是有效年份，则计算时间戳，返回年
+        $timestamp = self::getTimestamp($id);
+        return date('Y',$timestamp);
+    }
+
 }

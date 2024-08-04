@@ -30,6 +30,52 @@ class DataCheck
             }
         }
     }
+    
+    /**
+     * 校验是否有效数据
+     * @param type $data
+     * @param type $effects
+     * @param type $notices
+
+        $effects['type']= ['1','2'];
+
+        $notice['plan_start_time']  = '开始用车时间必须';
+        $notice['plan_finish_time'] = '结束用车时间必须';
+
+     * @throws Exception
+     */
+    public static function effect( $data, $effects, $notices=[] )
+    {
+        foreach( $effects as $key=>$effVals){
+            //key不存在
+            if( !in_array(Arrays::value($data, $key), $effVals)){
+                throw new Exception( isset($notices[ $key ])
+                        ? $notices[ $key ] 
+                        : $key.'不是有效的值' );
+            }
+        }
+    }
+    
+    /**
+     * 校验是否数值类型
+     * 20231130
+     * @param type $data
+     * @param type $keys
+     * @param type $notices
+     * @throws Exception
+     */
+    public static function isNumber( $data, $keys, $notices=[] )
+    {
+        foreach( $keys as $key){
+            //key不存在
+            if( isset( $data[ $key ] ) && !is_numeric($data[ $key ]) ){
+                throw new Exception( isset($notices[ $key ]) 
+                        ? $notices[ $key ] 
+                        : $key.'不是一个数字' );
+            }
+        }
+    }
+    
     /**
      * 20230516：校验是否有值
      * @param type $data
@@ -114,4 +160,13 @@ class DataCheck
         $timeCovDescent = base_convert($timeCov,32,10) - 7 * $mode;
         return $time == $timeCovDescent;
     }
+    /**
+     * 最大字符长度
+     */
+    public static function maxCharLength($dataStr, $mLength, $errMsg){
+        if($mLength && mb_strlen($dataStr) > $mLength){
+            throw new Exception($errMsg);
+        }
+    }
+
 }

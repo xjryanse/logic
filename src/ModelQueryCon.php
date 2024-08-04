@@ -3,6 +3,8 @@ namespace xjryanse\logic;
 
 /**
  * 拼装模型查询条件
+    $fields['like'] = ['module', 'controller', 'action'];
+    $con = ModelQueryCon::queryCon($param, $fields);
  */
 class ModelQueryCon
 {
@@ -28,43 +30,49 @@ class ModelQueryCon
     /**
      * 条件拆解成and 连接
      */
-    public static function conditionParse( $con ,$alias = "",$keyReplace = [])
+    public static function conditionParse( $con, $alias = "",$keyReplace = [])
     {
         //条件参数的形式：$con[] = ['aa','=','bb'];
         $condition = [];
-        foreach($con as $v){            
-            $tmpStr = "";
-            if($v[1] == "in"){
-                if(is_string($v[2])){
-                    $v[2] = [$v[2]];
-                }
-                $v[2] = "('".implode('\',\'',$v[2])."')";
-            } else {
-                $v[2] = '\''.$v[2].'\'';
-            }
-            //添加别名
-            if(strstr($v[0], '(') && $alias){
-                //带括号的，用这边进行添加
-                $temp = explode('(',$v[0]);
-                $temp[1] = $alias .'.'. $temp[1];
-                $v[0] = implode('(',$temp);
-            } else {
-                $keyReplaceStr = Arrays::value($keyReplace, $v[0]) ? : '';
-                //20221010常规的添加
-                if($keyReplaceStr){
-                    $v[0] = $keyReplaceStr;
-                } else {
-                    $v[0]           = $alias ? $alias .'.'. $v[0] :$v[0];
-                }
-            }
-            
-            $condition[]    = implode(' ',$v);
+        foreach($con as $v){
+            $condition[]    = self::conditionParseItem($v, $alias, $keyReplace);
         }
         //将参数组装成 and 连接，没有条件时，丢个1，兼容where 
         $conStr = $condition ? implode( ' and ',$condition ) : 1 ;         
         return $conStr;
-    }    
+    }
     
+    /**
+     * 条件拆解成and 连接
+     */
+    public static function conditionParseItem( $conItem ,$alias = "",$keyReplace = [])
+    {
+        if($conItem[1] == "in"){
+            if(is_string($conItem[2])){
+                $conItem[2] = [$conItem[2]];
+            }
+            $conItem[2] = "('".implode('\',\'',$conItem[2])."')";
+        } else {
+            $conItem[2] = '\''.$conItem[2].'\'';
+        }
+        //添加别名
+        if(strstr($conItem[0], '(') && $alias){
+            //带括号的，用这边进行添加
+            $temp = explode('(',$conItem[0]);
+            $temp[1] = $alias .'.'. $temp[1];
+            $conItem[0] = implode('(',$temp);
+        } else {
+            $keyReplaceStr = Arrays::value($keyReplace, $conItem[0]) ? : '';
+            //20221010常规的添加
+            if($keyReplaceStr){
+                $conItem[0] = $keyReplaceStr;
+            } else {
+                $conItem[0]           = $alias ? $alias .'.'. $conItem[0] :$conItem[0];
+            }
+        }
+
+        return implode(' ',$conItem);
+    }
     /**
      * 查询条件封装
      *
@@ -142,11 +150,15 @@ class ModelQueryCon
                 break;
             case "timescope": //时间范围查询
                 if (isset($param[$value][0]) && strlen($param[$value][0])) {
-                    $param[$value][0] = date('Y-m-d 00:00:00', strtotime($param[$value][0]));
+                    // $param[$value][0] = date('Y-m-d 00:00:00', strtotime($param[$value][0]));
+                    // 20240717:前端bug已修复，可以用这个时间了，不然又有新的bug产生（库存盘点）
+                    $param[$value][0] = date('Y-m-d H:i:s', strtotime($param[$value][0]));
                     $con[] = [$key, '>=', $param[$value][0]];
                 }
                 if (isset($param[$value][1]) && strlen($param[$value][1])) {
-                    $param[$value][1] = date('Y-m-d 23:59:59', strtotime($param[$value][1]));
+                    // $param[$value][1] = date('Y-m-d 23:59:59', strtotime($param[$value][1]));
+                    // 20240717:前端bug已修复，可以用这个时间了，不然又有新的bug产生（库存盘点）
+                    $param[$value][1] = date('Y-m-d H:i:s', strtotime($param[$value][1]));
                     $con[] = [$key, '<=', $param[$value][1]];
                 }
                 break;
@@ -267,4 +279,18 @@ class ModelQueryCon
         }
         return $hasKey;
     }
+    /**
+     * 判断是否包含key,有一个就算
+     * @param type $con
+     * @param type $keys
+     */
+    public static function containKey($con, $keys){
+        foreach($keys as $k){
+            if(self::hasKey($con, $k)){
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

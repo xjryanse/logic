@@ -189,3 +189,7 @@ const DIRECT_AFT = 'after';
 
 // 20230531：系统钩子名称
 const TRIGGER_AFTER_ORDER_PAY = 'afterOrderPay';
+// 20240401 财务锁账key
+const FINT_BAO_ORDER = 'baoOrder';
+// 20240522 考勤
+const FINT_DRIVER_DAILY_TANG = 'driverDailyTang';

@@ -112,5 +112,10 @@ class Cachex
         // 标记为处理中
         return TpCache::get($cacheKey);
     }
-    
+    /**
+     * 20231014:删除key
+     */
+    public static function rm($key){
+        return TpCache::rm($key); 
+    }
 }

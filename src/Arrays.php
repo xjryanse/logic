@@ -10,7 +10,7 @@ class Arrays
     /**
      * 数组取值
      */
-    public static function value( $array , $key,$default='' )
+    public static function value( $array , $key, $default='' )
     {
         return $array && isset($array[ $key ]) ? $array[ $key ] : $default;
     }
@@ -21,7 +21,7 @@ class Arrays
      * @param type $keys    键值数组
      * @return type
      */
-    public static function getByKeys(array $array,$keys )
+    public static function getByKeys(array $array, $keys )
     {
         // 20230609:兼容逗号分隔
         if(!is_array($keys)){
@@ -168,6 +168,9 @@ class Arrays
      * @return boolean
      */
     public static function isConMatch( $data, $con){
+        if(!$con){
+            return true;
+        }
         //符号替换
         $signReplace['='] = '==';   // 等号'
         $signReplace['<>'] = '!=';  //不等号'
@@ -262,7 +265,7 @@ class Arrays
         }
         foreach($param as $k=>&$v){
             // 值为空且（索引是数值，或不在排除key中）
-            if(!$v && (is_numeric($k) || !in_array($k, $exceptKeys))){
+            if((is_null($v) || $v === '') && (is_numeric($k) || !in_array($k, $exceptKeys))){
                 unset($param[$k]);
             }
 //            if(!is_array($v) && !strlen($v)){
@@ -314,7 +317,14 @@ class Arrays
     public static function sum($array){
         $arrCov = [];
         foreach($array as $v){
-            $arrCov[] = $v * 1000; 
+            // 20240511:不是数值型的，返回空字符串
+            if($v && !is_numeric($v)){
+                return '';
+            }
+            if(!$v){
+                $v = 0;
+            }
+            $arrCov[] = intval($v * 1000); 
         }
         return array_sum($arrCov) / 1000;
     }
@@ -361,16 +371,6 @@ class Arrays
         // 如果要保持键为字符串，可以使用 + 运算符来进行数组合并，而不是使用 array_merge() 函数。它会保留字符串键，并避免将其视为数字。
         // 使用 + 运算符需要注意的一点是，如果键相同，后面的数组中具有相同键的元素将会被忽略。这意味着在合并数组时，如果有重复的键，只有第一个数组中的元素将被保留。
         return $arr2 + $arr1;
-//        // 20230730:合并结果
-//        $resp = $arr1;
-//        foreach($arr2 as &$k=>$v){
-//            $resp[$k] = $v;
-//        }
-//        dump($resp);
-//        exit;
-//        // 20230730:array_merge有bug
-//        // return array_merge($arr1, $arr2);
-//        return $resp;
     }
     
     
@@ -413,5 +413,46 @@ class Arrays
 
         return json_decode($str, JSON_UNESCAPED_UNICODE);
     }
+    /**
+     * 是否有这些key,有一个即可
+     */
+    public static function hasKeys($data, $keys){
+        foreach($keys as $k){
+            if(isset($data[$k])){
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    /**
+     * 是否有这些key,需全部有
+     */
+    public static function hasKeysAll($data, $keys){
+        foreach($keys as $k){
+            if(!isset($data[$k])){
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * 20240105:唯一合并
+     * @param type $arr1
+     * @param type $arr2
+     * @return type
+     */
+    public static function uniqueMerge($arr1,$arr2){
+        return array_unique(array_merge($arr1, $arr2));
+    }
     
+    /**
+     * 通用，先字符串化，在回转
+     * 20240306
+     */
+    public static function dataReplace($arr, $data){
+        $str    = json_encode($arr,JSON_UNESCAPED_UNICODE);
+        $fStr   = Strings::dataReplace($str, $data);
+        return json_decode($fStr, JSON_UNESCAPED_UNICODE);
+    }
 }
