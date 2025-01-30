@@ -455,4 +455,42 @@ class Arrays
         $fStr   = Strings::dataReplace($str, $data);
         return json_decode($fStr, JSON_UNESCAPED_UNICODE);
     }
+    /**
+     * 20250126:数组深度
+     */
+    public static function deepth($array){
+        $maxDepth = 1;
+
+        foreach ($array as $value) {
+            if (is_array($value)) {
+                $depth = self::deepth($value) + 1;
+                if ($depth > $maxDepth) {
+                    $maxDepth = $depth;
+                }
+            }
+        }
+
+        return $maxDepth;
+    }
+    /**
+     * 计算数组占用行数;
+     * 二维子数组，按实际行数计算
+     */
+    public static function ocpRowCount($array){
+        foreach ($array as $k=>$item) {
+            if(!is_array($item)){
+                continue;
+            }
+            if (Arrays2d::isArrays2d($item)) {
+                // 若有子数组，占用行数为子数组数量
+                return count($item);
+            }
+            // 数组不是空的，才占2行，否则算占1行
+            if($item){
+                return 2;
+            }
+        }
+        return 1;
+    }
+    
 }

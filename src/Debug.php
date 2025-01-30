@@ -75,29 +75,6 @@ class Debug
 //            echo $query['sql']; // 逐条输出每条执行的SQL语句
 //        }
     }
-    
-    /**
-     * 20240725:打印全局sql,一般用于开发调试
-     * @global type $glSaveData
-     * @global type $glUpdateData
-     * @global type $glDeleteData
-     * @global array $glSqlQuery
-     */
-    public static function dumpGlobalSql(){
-        global $glSaveData, $glUpdateData, $glDeleteData, $glSqlQuery;
-        if(self::isDevIp()){
-            dump('$glSaveData');
-            dump($glSaveData);
-            dump('$glUpdateData');
-            dump($glUpdateData);
-            dump('$glDeleteData');
-            dump($glDeleteData);
-            dump('$glSqlQuery');
-            dump($glSqlQuery);
-        }
-    }
-
-    
     /**
      * 
      */
@@ -107,7 +84,7 @@ class Debug
             $startTime = $runMicTime ? : 0;
             $runMicTime = microtime(true);
             $executionTime = $runMicTime - $startTime;
-            dump($executionTime);
+            dump($executionTime * 1000);
         }
     }
     
@@ -125,5 +102,5 @@ class Debug
      */
     public static function isDevIp(){
         return Request::ip() == Cache::get('devRequestIp');
-    }
+    }    
 }

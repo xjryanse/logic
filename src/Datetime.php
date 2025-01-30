@@ -660,5 +660,13 @@ class Datetime
 
         return $datetime;
     }
+    /**
+     * 2024-08-17：指定日期是星期几
+     */
+    public static function weekDayStr($date){
+        $wks    = [0=>'日',1=>'一',2=>'二',3=>'三',4=>'四',5=>'五',6=>'六'];
+        $wk = date('w',strtotime($date));
+        return isset($wks[$wk]) ? $wks[$wk] : '';
+    }
     
 }

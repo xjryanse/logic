@@ -156,9 +156,13 @@ class ModelQueryCon
                     $con[] = [$key, '>=', $param[$value][0]];
                 }
                 if (isset($param[$value][1]) && strlen($param[$value][1])) {
-                    // $param[$value][1] = date('Y-m-d 23:59:59', strtotime($param[$value][1]));
-                    // 20240717:前端bug已修复，可以用这个时间了，不然又有新的bug产生（库存盘点）
-                    $param[$value][1] = date('Y-m-d H:i:s', strtotime($param[$value][1]));
+                    if(preg_match("/^\d{4}-\d{2}-\d{2}$/", $param[$value][1])){
+                        // 20250103:当前端只传日期：2025-01-01；默认时间取为当天23:59:59,不然会差一天的数据
+                        $param[$value][1] = date('Y-m-d 23:59:59', strtotime($param[$value][1]));
+                    } else {
+                        // 20240717:前端bug已修复，可以用这个时间了，不然又有新的bug产生（库存盘点）
+                        $param[$value][1] = date('Y-m-d H:i:s', strtotime($param[$value][1]));
+                    }
                     $con[] = [$key, '<=', $param[$value][1]];
                 }
                 break;

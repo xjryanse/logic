@@ -16,7 +16,7 @@ class Operate {
      * {"id":"5539321601631780864","eat_money":9,"CONFIRM_KEYS":["salaryLockDescConfirm"]}
      */
     public static function confirm($key, $confirm){
-        $hasKeys = Request::param('CONFIRM_KEYS')? : [];
+        $hasKeys        = Request::param('CONFIRM_KEYS')? : [];
         // key未确认
         if(!in_array($key, $hasKeys)){
             // 全局返回data

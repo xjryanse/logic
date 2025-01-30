@@ -171,6 +171,7 @@ class Arrays2d
         if(!$listsAll){
             return [];
         }
+        /*
         $dataArr = [];
         foreach($listsAll as $data){
             if(Arrays::isConMatch($data, $con)){
@@ -178,6 +179,13 @@ class Arrays2d
             }
         }
         return $dataArr;
+        */
+        // 20241202：尝试优化
+        $dataArr = array_filter($listsAll, function ($data) use ($con) {
+            return Arrays::isConMatch($data, $con);
+        });
+        // 20241204:客诉，排查发现是key没有重置
+        return array_values($dataArr);
     }
     /**
      * 按条件统计数量
@@ -202,6 +210,19 @@ class Arrays2d
         }
         return [];
     }
+    /**
+     * 20241125:从二维中查找符合条件的一维
+     * @param type $listsAll
+     * @param type $data
+     */
+    public static function dataListFind($listsAll, $data){
+        $con = [];
+        foreach ($data as $k => $v) {
+            $con[] = [$k, '=', $v];
+        }
+        return self::listFind($listsAll, $con);
+    }
+    
     /**
      * 键值对查询是否存在
      * 2023-09-15
@@ -544,5 +565,39 @@ class Arrays2d
         }
         return $listArr;        
     }
+    /**
+     * 20250126:二维数组列数
+     */
+    public static function colCount($arr){
+        $maxColumnCount = 0;
+        foreach ($arr as $subArray) {
+            $currentColumnCount = count($subArray);
+            if ($currentColumnCount > $maxColumnCount) {
+                $maxColumnCount = $currentColumnCount;
+            }
+        }
+        return $maxColumnCount;
+    }
     
+    /**
+     * 20250126:二维数组行数
+     */
+    public static function rowCount($arr){
+        return count($arr);
+    }
+    /**
+     * 20250126：判断一个数组是否二维数组
+     * @return bool
+     */
+    public static function isArrays2d($arr){
+        if (!is_array($arr)) {
+            return false;
+        }
+        foreach ($arr as $item) {
+            if (is_array($item)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

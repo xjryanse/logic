@@ -221,7 +221,7 @@ class Strings {
      * @param string $keyPreFix 适用于递归
      * @return type
      */
-    public static function dataReplace($str, array $data, $keyPreFix = '') {
+    public static function dataReplace($str, $data, $keyPreFix = '') {
         // 20240427：似乎一行可以搞定？？
         // $template = str_replace(array_keys($this->data), $this->data, $template);
         foreach ($data as $key => &$value) {

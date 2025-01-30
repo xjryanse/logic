@@ -8,6 +8,7 @@ use xjryanse\logic\Debug;
 use xjryanse\logic\DbOperate;
 use xjryanse\logic\Runtime;
 use xjryanse\logic\Strings;
+use xjryanse\logic\Arrays;
 use Exception;
 /**
  * 数据库操作类库
@@ -20,6 +21,64 @@ class DbOperate
     public static function createTableSql( $tableName ){
         $createTableSql = Db::cache(60)->query("show create table ". $tableName );
         return $createTableSql[0]['Create Table'];
+    }
+    
+    /**
+     * 2024-08-24：创建数据表
+     * $fields[]=[
+     * 'fieldName'=>'school_id'
+     * ,'type'=>'char'
+     * ,'length'=>'19'
+     * ,'charSet'=>'utf8'
+     * ,'collage'=>'utf8_general_ci'
+     * ,'default'=>''
+     * ,'comment'=>''
+     * ,'nullable'=>1
+     * ];
+     */
+    public static function createTable($tableName, $fields = [], $tbComment = ''){
+        if(self::isTableExist($tableName)){
+            throw new Exception('数据表已存在不可操作'.$tableName);
+        }
+
+        $sql = 'CREATE TABLE `'.$tableName.'` (';
+        $fArr = [];
+        // $fArr[] = '`id` char(19) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL';
+        foreach($fields as &$f){
+            $fieldName  = Arrays::value($f, 'fieldName');
+            $type       = Arrays::value($f, 'type');
+            // 可空
+            $nullable   = Arrays::value($f, 'nullable', true);
+            $length     = Arrays::value($f, 'length');
+            $charSet    = Arrays::value($f, 'charSet', 'utf8');
+            $collage    = Arrays::value($f, 'collage', 'utf8_general_ci');
+            // '\'\'' 空字符串
+            $default    = isset($f['default']) 
+                    ? ($f['default'] === '' ? '\'\'' : $f['default']) 
+                    : 'null' ;
+            $comment    = Arrays::value($f, 'comment');
+
+            $tmp = '`'.$fieldName.'` '.$type;
+            if($length && $length <= 255){
+                $tmp .= '('.$length.')';
+            }
+            if(($length && !in_array($type,['int','tinyint']) ) || in_array($type,['text'])){
+                $tmp .= ' CHARACTER SET '.$charSet.' COLLATE '.$collage;
+            }
+            if(!$nullable){
+                $tmp .= ' NOT NULL';
+            } else {
+                $tmp .= ' DEFAULT '.$default;
+            }
+
+            $tmp .= ' COMMENT \''.$comment. '\'';
+            $fArr[] = $tmp;
+        }
+        $fArr[] = '  PRIMARY KEY (`id`) USING BTREE';
+        $sql .= implode(',',$fArr);
+        $sql .= ') ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COMMENT=\''.$tbComment.'\'';
+        // dump($sql);exit;
+        return Db::execute($sql);
     }
     
     /**
@@ -439,7 +498,7 @@ class DbOperate
             //20220718:解决关键词字段bug
             // $arr[] = 'sum(`'.$v.'`) as `'.$v.'`';
             // 20221025：去除多余0
-            $arr[] = '0 + cast(sum(`'.$v.'`) as char) as `'.$v.'`';
+            $arr[] = '0 + round(cast(sum(`'.$v.'`) as char),2) as `'.$v.'`';
         }
         return implode(',',$arr);
     }
@@ -458,7 +517,7 @@ class DbOperate
         //防中文乱码
 //        $pdo->query("set names 'utf8'");
         $pdo->query("set names 'ANSI'");
-        Debug::dump('pdoQuery的sql',$sql);
+        // Debug::dump('pdoQuery的sql',$sql);
         $rows = $pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
 
         return $rows;
@@ -631,6 +690,9 @@ class DbOperate
                 $tmp['uniField']    = Arrays::value($v, 'uni_field' ,'id'); 
                 // 20230807：匹配条件
                 $tmp['condition']   = Arrays::value($v, 'condition',[]); 
+                // 20241130
+                $tmp['countField']  = Arrays::value($v, 'countField'); 
+                
                 $objAttrs[]         = $tmp;
             }
             return $objAttrs;
@@ -728,7 +790,18 @@ class DbOperate
             }
             // dump($tService::mainModel()->getTable());exit;
             // 校验是否有数据
-            $count = $tService::where($tCon)->count();
+            // 20241208:增加内存判断优化性能
+            $property  = Arrays::value($field, 'property');
+            $uniTable  = Arrays::value($field, 'uniTable'); 
+            $uService  = self::getService($uniTable);
+            if($uniField == 'id' && $property && $uService && method_exists($uService, 'objAttrExist') 
+                    && $uService::objAttrExist($property)){
+                // eg: $this->objAttrsList('financeVoucherDtl');
+                $count = count($uService::getInstance($thisValue)->objAttrsList($property));
+            } else {
+                // 20241208:原来的判断方法
+                $count = $tService::where($tCon)->count();
+            }
             if($count){
                 $msgRaw = Arrays::value($field, 'del_msg','数据已使用不可删');
                 

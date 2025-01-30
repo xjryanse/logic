@@ -17,11 +17,20 @@ class SnowFlake
     public static function machineId($mId) {    
         self::$machineId = $mId;    
     }
-    public static function generateParticle() {    
+    /**
+     * 
+     * @param type $timestamp    时间戳 20241206：部分特殊指定，如分表
+     * @return type
+     */
+    public static function generateParticle($timestamp = 0) {    
         /*    
         * Time - 42 bits    
-        */    
-        $time = floor(microtime(true) * 1000);    
+        */  
+        if($timestamp){
+            $time = floor($timestamp * 1000);    
+        } else {
+            $time = floor(microtime(true) * 1000);    
+        }
         /*    
         * Substract custom epoch from current time    
         */    

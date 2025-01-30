@@ -62,5 +62,16 @@ class Functions {
         }
         return $res;
     }
+    
+    /**
+     * 20240830 计算脚本执行时长
+     */
+    public static function execTime($func = null){
+        $startTime  = microtime(true);
+        
+        call_user_func($func);
 
+        $endTime    = microtime(true);
+        return $endTime - $startTime;
+    }
 }

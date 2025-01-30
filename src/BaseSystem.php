@@ -25,7 +25,7 @@ class BaseSystem {
         }
         $companyKey = Request::param('comKey') ? : session(SESSION_COMPANY_KEY);
         // $url        = $baseHost.'/'.session(SESSION_COMPANY_KEY).'/webapi/Universal/pageGet';
-        $url        = $baseHost.'/'.$companyKey.$url;
+        $url        = $baseHost.$companyKey.$url;
         $finalUrl   = Url::addParam($url, $param);
 
         $res        = Query::get($finalUrl);
